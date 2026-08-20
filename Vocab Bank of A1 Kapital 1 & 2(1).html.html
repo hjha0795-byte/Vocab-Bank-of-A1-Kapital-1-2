@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>German A1 Vocabulary - Kapitel 1 & 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #f4f4f5; color: #1f2937; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .font-handwriting { font-family: 'Caveat', cursive; }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); width: 100%; height: 100%; }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .notebook-bg { background-color: #fdfcf8; background-image: repeating-linear-gradient(transparent, transparent 31px, #e5e7eb 31px, #e5e7eb 32px); background-attachment: local; }
+        @keyframes float { 0% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-6px) scale(1.03); } 100% { transform: translateY(0px) scale(1); } }
+        .visual-float { display: inline-block; animation: float 3s ease-in-out infinite; }
+        .cover-page { background: radial-gradient(circle, #3b82f6 0%, #1d4ed8 100%); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 4rem 2rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2); }
+        .audio-btn { background-color: #f3f4f6; color: #3b82f6; border-radius: 9999px; padding: 0.6rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; }
+        .audio-btn:hover { background-color: #e5e7eb; transform: scale(1.1); color: #2563eb; }
+        .audio-btn:active { transform: scale(0.95); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        .stat-card { background: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-bottom: 3px solid #3b82f6; }
+    </style>
+</head>
+<body class="py-8 px-4 md:px-8">
+
+    <div class="max-w-7xl mx-auto">
+        <div class="cover-page mb-10">
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-white drop-shadow-md">Netzwerk Neu A1</h1>
+            <h2 class="text-2xl md:text-3xl font-semibold opacity-90">Kapitel 1 & 2 • Complete Vocabulary</h2>
+            <p class="mt-4 text-lg max-w-3xl text-blue-100">Interactive Flashcards • Native Audio • Detailed Grammar • 2 Examples/Word</p>
+        </div>
+
+        <div class="sticky top-4 z-50 max-w-3xl mx-auto mb-12">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" id="searchBar" class="block w-full pl-12 pr-12 py-4 border-2 border-blue-100 rounded-full text-lg focus:ring-blue-500 focus:border-blue-500 bg-white shadow-lg" placeholder="Search by German, English, Hinglish, or Grammar Tag (e.g. 'Verb')...">
+                <button id="clearSearch" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 hidden">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="noResults" class="hidden text-center text-gray-500 mt-4 text-lg font-bold">No cards found matching your search.</div>
+        </div>
+
+        <div id="flashcardsContainer"></div>
+
+        <div class="mt-16 pt-8 border-t border-gray-300">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">📊 Vocabulary Statistics Dashboard</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="generalStats"></div>
+            <h3 class="text-2xl font-bold text-gray-700 mb-4 text-center">⚡ Verb Classification</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="verbStats"></div>
+        </div>
+    </div>
+
+    <script>
+        const c = (d, e, h, v, t, i, xStr) => {
+            let p = xStr.split('|');
+            return { d, e, h, v, t, i, ex1: {d: p[0], e: p[1], h: p[2]}, ex2: {d: p[3], e: p[4], h: p[5]} };
+        };
+
+        const vRegIn = "Type: Regular | Insep. | Aux: haben";
+        const vRegSep = "Type: Regular | Sep. | Aux: haben";
+        const vIrrInH = "Type: Irregular | Insep. | Aux: haben";
+        const vIrrInS = "Type: Irregular | Insep. | Aux: sein";
+
+        const ch1 = [
+            { title: "Languages & Countries", cards: [
+                c("Bulgarisch", "Bulgarian", "Bulgarian", "🇧🇬", "Noun", "Gen: Neut. | Art: das", "Er spricht Bulgarisch.|He speaks Bulgarian.|Woh Bulgarian bolta hai.|Sie lernt Bulgarisch.|She learns Bulgarian.|Woh Bulgarian seekhti hai."),
+                c("Deutsch", "German", "German", "🇩🇪", "Noun", "Gen: Neut. | Art: das", "Ich spreche Deutsch.|I speak German.|Main German bolta hu.|Deutsch ist interessant.|German is interesting.|German dilchasp hai."),
+                c("Englisch", "English", "English", "🇬🇧", "Noun", "Gen: Neut. | Art: das", "Wir lernen Englisch.|We are learning English.|Hum English seekh rahe hain.|Er spricht gut Englisch.|He speaks good English.|Woh achhi English bolta hai."),
+                c("Indonesisch", "Indonesian", "Indonesian", "🇮🇩", "Noun", "Gen: Neut. | Art: das", "Sie spricht Indonesisch.|She speaks Indonesian.|Woh Indonesian bolti hai.|Indonesisch ist leicht.|Indonesian is easy.|Indonesian aasaan hai."),
+                c("international", "international", "antarrashtriya", "🌍", "Adjective", "-", "Deutsch ist international.|German is international.|German antarrashtriya hai.|Die Firma ist international.|The company is international.|Company antarrashtriya hai."),
+                c("Italienisch", "Italian", "Italian", "🇮🇹", "Noun", "Gen: Neut. | Art: das", "Er kocht italienisch.|He cooks Italian.|Woh Italian khana banata hai.|Ich lerne Italienisch.|I am learning Italian.|Main Italian seekh raha hu."),
+                c("Japanisch", "Japanese", "Japanese", "🇯🇵", "Noun", "Gen: Neut. | Art: das", "Sie spricht Japanisch.|She speaks Japanese.|Woh Japanese bolti hai.|Japanisch ist schön.|Japanese is beautiful.|Japanese sundar hai."),
+                c("Japan", "Japan", "Japan", "🗻", "Proper noun", "Country", "Ich reise nach Japan.|I travel to Japan.|Main Japan ki yatra kar raha hu.|Japan ist groß.|Japan is big.|Japan bada hai."),
+                c("Russisch", "Russian", "Russian", "🇷🇺", "Noun", "Gen: Neut. | Art: das", "Er liest Russisch.|He reads Russian.|Woh Russian padhta hai.|Russisch ist schwer.|Russian is difficult.|Russian mushkil hai."),
+                c("Russland", "Russia", "Russia", "🪆", "Proper noun", "Country", "Moskau ist in Russland.|Moscow is in Russia.|Moscow Russia mein hai.|Russland ist kalt.|Russia is cold.|Russia thanda hai."),
+                c("Serbisch", "Serbian", "Serbian", "🇷🇸", "Noun", "Gen: Neut. | Art: das", "Er spricht Serbisch.|He speaks Serbian.|Woh Serbian bolta hai.|Lernst du Serbisch?|Are you learning Serbian?|Kya tum Serbian seekh rahe ho?"),
+                c("Türkisch", "Turkish", "Turkish", "🇹🇷", "Noun", "Gen: Neut. | Art: das", "Sie kocht türkisch.|She cooks Turkish.|Woh Turkish khana banati hai.|Türkisch ist interessant.|Turkish is interesting.|Turkish dilchasp hai."),
+                c("die Türkei", "Turkey", "Turkey", "🕌", "Noun", "Gen: Fem. | Art: die", "Ich fliege in die Türkei.|I fly to Turkey.|Main Turkey ja raha hu.|Die Türkei ist schön.|Turkey is beautiful.|Turkey sundar hai."),
+                c("Ungarisch", "Hungarian", "Hungarian", "🇭🇺", "Noun", "Gen: Neut. | Art: das", "Er lernt Ungarisch.|He learns Hungarian.|Woh Hungarian seekh raha hai.|Sprechen Sie Ungarisch?|Do you speak Hungarian?|Kya aap Hungarian bolte hain?"),
+                c("Spanisch", "Spanish", "Spanish", "🇪🇸", "Noun", "Gen: Neut. | Art: das", "Spanisch ist toll.|Spanish is great.|Spanish badhiya hai.|Ich liebe Spanisch.|I love Spanish.|Mujhe Spanish pasand hai."),
+                c("Spanien", "Spain", "Spain", "💃", "Proper noun", "Country", "Wir fahren nach Spanien.|We travel to Spain.|Hum Spain ja rahe hain.|Spanien ist warm.|Spain is warm.|Spain garam hai."),
+                c("Französisch", "French", "French", "🇫🇷", "Noun", "Gen: Neut. | Art: das", "Er lernt Französisch.|He is learning French.|Woh French seekh raha hai.|Französisch ist elegant.|French is elegant.|French elegant hai."),
+                c("Frankreich", "France", "France", "🥐", "Proper noun", "Country", "Paris ist in Frankreich.|Paris is in France.|Paris France mein hai.|Frankreich ist schön.|France is beautiful.|France sundar hai."),
+                c("Portugiesisch", "Portuguese", "Portuguese", "🇵🇹", "Noun", "Gen: Neut. | Art: das", "Sie spricht Portugiesisch.|She speaks Portuguese.|Woh Portuguese bolti hai.|Lernen Sie Portugiesisch?|Are you learning Portuguese?|Kya aap Portuguese seekh rahe hain?"),
+                c("Portugal", "Portugal", "Portugal", "🌊", "Proper noun", "Country", "Er wohnt in Portugal.|He lives in Portugal.|Woh Portugal mein rehta hai.|Portugal ist im Süden.|Portugal is in the south.|Portugal dakshin mein hai."),
+                c("Arabisch", "Arabic", "Arabic", "🇦🇪", "Noun", "Gen: Neut. | Art: das", "Er schreibt Arabisch.|He writes Arabic.|Woh Arabic likhta hai.|Arabisch ist alt.|Arabic is old.|Arabic purani hai."),
+                c("Polnisch", "Polish", "Polish", "🇵🇱", "Noun", "Gen: Neut. | Art: das", "Er spricht Polnisch.|He speaks Polish.|Woh Polish bolta hai.|Wir lernen Polnisch.|We learn Polish.|Hum Polish seekh rahe hain."),
+                c("Polen", "Poland", "Poland", "🥟", "Proper noun", "Country", "Warschau ist in Polen.|Warsaw is in Poland.|Warsaw Poland mein hai.|Ich fahre nach Polen.|I am traveling to Poland.|Main Poland ja raha hu."),
+                c("Rätoromanisch", "Raetho-Romanic", "Raetho-Romanic", "🇨🇭", "Noun", "Gen: Neut. | Art: das", "Man spricht Rätoromanisch.|They speak Raetho-Romanic.|Log Raetho-Romanic bolte hain.|Rätoromanisch ist selten.|Raetho-Romanic is rare.|Raetho-Romanic kam boli jati hai."),
+                c("Brasilien", "Brazil", "Brazil", "🇧🇷", "Proper noun", "Country", "Er lebt in Brasilien.|He lives in Brazil.|Woh Brazil mein rehta hai.|Brasilien ist riesig.|Brazil is huge.|Brazil bahut bada hai."),
+                c("Algerien", "Algeria", "Algeria", "🇩🇿", "Proper noun", "Country", "Er kommt aus Algerien.|He comes from Algeria.|Woh Algeria se aata hai.|Algerien ist in Afrika.|Algeria is in Africa.|Algeria Africa mein hai."),
+                c("Griechenland", "Greece", "Greece", "🇬🇷", "Proper noun", "Country", "Wir fliegen nach Griechenland.|We fly to Greece.|Hum Greece ja rahe hain.|Griechenland ist am Meer.|Greece is by the sea.|Greece samudra ke paas hai."),
+                c("Mexiko", "Mexico", "Mexico", "🇲🇽", "Proper noun", "Country", "Sie wohnt in Mexiko.|She lives in Mexico.|Woh Mexico mein rehti hai.|Mexiko ist warm.|Mexico is warm.|Mexico garam hai."),
+                c("Thailand", "Thailand", "Thailand", "🇹🇭", "Proper noun", "Country", "Ich reise nach Thailand.|I travel to Thailand.|Main Thailand ki yatra kar raha hu.|Thailand ist in Asien.|Thailand is in Asia.|Thailand Asia mein hai."),
+                c("Österreich", "Austria", "Austria", "🇦🇹", "Proper noun", "Country", "Wien ist in Österreich.|Vienna is in Austria.|Vienna Austria mein hai.|Österreich hat Berge.|Austria has mountains.|Austria mein pahaad hain."),
+                c("die Schweiz", "Switzerland", "Switzerland", "🇨🇭", "Noun", "Gen: Fem. | Art: die", "Bern ist in der Schweiz.|Bern is in Switzerland.|Bern Switzerland mein hai.|Ich liebe die Schweiz.|I love Switzerland.|Mujhe Switzerland pasand hai."),
+                c("die Ukraine", "Ukraine", "Ukraine", "🇺🇦", "Noun", "Gen: Fem. | Art: die", "Sie kommt aus der Ukraine.|She comes from Ukraine.|Woh Ukraine se hai.|Kiew ist in der Ukraine.|Kyiv is in Ukraine.|Kyiv Ukraine mein hai."),
+                c("die USA", "USA", "USA", "🇺🇸", "Noun", "Gen: Plural | Art: die", "Er lebt in den USA.|He lives in the USA.|Woh USA mein rehta hai.|Die USA sind groß.|The USA are big.|USA bada hai."),
+                c("Deutschland", "Germany", "Germany", "🇩🇪", "Proper noun", "Country", "Ich wohne in Deutschland.|I live in Germany.|Main Germany mein rehta hu.|Deutschland ist schön.|Germany is beautiful.|Germany sundar hai."),
+                c("das Land, \"-er", "country", "desh", "🌍", "Noun", "Gen: Neut. | Art: das | Pl: die Länder", "Welches Land ist das?|Which country is that?|Yeh kaunsa desh hai?|Es gibt viele Länder.|There are many countries.|Kayi desh hain."),
+                c("die Sprache, -n", "language", "bhasha", "🗣️", "Noun", "Gen: Fem. | Art: die | Pl: die Sprachen", "Deutsch ist eine Sprache.|German is a language.|German ek bhasha hai.|Welche Sprachen sprichst du?|Which languages do you speak?|Tum kaunsi bhashaein bolte ho?"),
+                c("das Wort, \"-er", "word", "shabd", "📝", "Noun", "Gen: Neut. | Art: das | Pl: die Wörter", "Das Wort ist neu.|The word is new.|Yeh shabd naya hai.|Wie heißt das Wort?|What is the word called?|Is shabd ko kya kehte hain?")
+            ]},
+            { title: "Images & Objects", cards: [
+                c("die Autobahn, -en", "highway", "highway", "🛣️", "Noun", "Gen: Fem. | Art: die | Pl: die Autobahnen", "Die Autobahn ist frei.|The highway is clear.|Highway khali hai.|Wir fahren auf der Autobahn.|We drive on the highway.|Hum highway par chal rahe hain."),
+                c("das Butterbrot, -e", "sandwich / buttered bread", "sandwich", "🥪", "Noun", "Gen: Neut. | Art: das | Pl: die Butterbrote", "Ich esse ein Butterbrot.|I eat a sandwich.|Main ek sandwich khata hu.|Das Butterbrot schmeckt.|The sandwich tastes good.|Sandwich swadisht hai."),
+                c("die Flasche, -n", "bottle", "botal", "🍾", "Noun", "Gen: Fem. | Art: die | Pl: die Flaschen", "Die Flasche ist leer.|The bottle is empty.|Botal khali hai.|Ich kaufe eine Flasche Wasser.|I buy a bottle of water.|Main ek botal paani kharidta hu."),
+                c("das Handtuch, \"-er", "towel", "toliya", "🛁", "Noun", "Gen: Neut. | Art: das | Pl: die Handtücher", "Wo ist mein Handtuch?|Where is my towel?|Mera toliya kahan hai?|Das Handtuch ist weich.|The towel is soft.|Toliya naram hai."),
+                c("der Kindergarten, \"-", "kindergarten", "kindergarten", "🧸", "Noun", "Gen: Masc. | Art: der | Pl: die Kindergärten", "Das Kind geht in den Kindergarten.|The child goes to the kindergarten.|Bachha kindergarten jata hai.|Der Kindergarten ist groß.|The kindergarten is big.|Kindergarten bada hai."),
+                c("der Koffer, -", "suitcase", "suitcase / bag", "🧳", "Noun", "Gen: Masc. | Art: der | Pl: die Koffer", "Mein Koffer ist blau.|My suitcase is blue.|Mera suitcase neela hai.|Ich packe den Koffer.|I pack the suitcase.|Main suitcase pack karta hu."),
+                c("der Kranke, -n", "sick person (male)", "beemar aadmi", "🤒", "Noun", "Gen: Masc. | Art: der | Pl: die Kranken", "Der Kranke schläft.|The sick person sleeps.|Beemar aadmi so raha hai.|Der Arzt hilft dem Kranken.|The doctor helps the sick person.|Doctor beemar ki madad karta hai."),
+                c("die Kranke, -n", "sick person (female)", "beemar aurat", "🤒", "Noun", "Gen: Fem. | Art: die | Pl: die Kranken", "Die Kranke trinkt Wasser.|The sick person drinks water.|Beemar aurat paani peeti hai.|Wir besuchen die Kranke.|We visit the sick person.|Hum beemar aurat se milne jate hain."),
+                c("die Nudel, -n", "noodle", "noodle", "🍝", "Noun", "Gen: Fem. | Art: die | Pl: die Nudeln", "Die Nudeln sind heiß.|The noodles are hot.|Noodles garam hain.|Ich koche Nudeln.|I cook noodles.|Main noodles banata hu."),
+                c("das Würstchen, -", "sausage", "sausage", "🌭", "Noun", "Gen: Neut. | Art: das | Pl: die Würstchen", "Das Würstchen ist lecker.|The sausage is tasty.|Sausage swadisht hai.|Ich esse ein Würstchen.|I eat a sausage.|Main ek sausage khata hu."),
+                c("das Würstel, -", "sausage (Austrian)", "sausage (Austrian)", "🌭", "Noun", "Gen: Neut. | Art: das | Pl: die Würstel", "In Österreich isst man Würstel.|In Austria they eat sausages.|Austria mein log sausage khate hain.|Ein Würstel, bitte.|A sausage, please.|Ek sausage, kripya.")
+            ]},
+            { title: "Grammar & Small Words", cards: [
+                c("der", "the (masculine)", "the", "🟦", "Article", "Definite | Nominative", "Der Tisch ist neu.|The table is new.|Mez nayi hai.|Der Mann arbeitet.|The man is working.|Aadmi kaam kar raha hai."),
+                c("die", "the (feminine/plural)", "the", "🟥", "Article", "Definite | Nominative", "Die Frau liest.|The woman reads.|Aurat padh rahi hai.|Die Kinder spielen.|The children play.|Bachhe khel rahe hain."),
+                c("das", "the (neuter)", "the", "🟩", "Article", "Definite | Nominative", "Das Buch ist gut.|The book is good.|Kitaab achhi hai.|Das Kind lacht.|The child laughs.|Bachha hans raha hai."),
+                c("ein", "a / an (masc./neut.)", "ek", "1️⃣", "Article", "Indefinite | Nominative", "Das ist ein Stift.|That is a pen.|Yeh ek pen hai.|Er hat ein Auto.|He has a car.|Uske paas ek gadi hai."),
+                c("eine", "a / an (fem.)", "ek", "1️⃣", "Article", "Indefinite | Nominative", "Das ist eine Flasche.|That is a bottle.|Yeh ek botal hai.|Ich habe eine Idee.|I have an idea.|Mere paas ek idea hai."),
+                c("und", "and", "aur", "➕", "Conjunction", "-", "Du und ich.|You and I.|Tum aur main.|Kaffee und Tee.|Coffee and tea.|Coffee aur chai."),
+                c("oder", "or", "ya", "↔️", "Conjunction", "-", "Heute oder morgen?|Today or tomorrow?|Aaj ya kal?|Kaffee oder Tee?|Coffee or tea?|Coffee ya chai?"),
+                c("auch", "also / too", "bhi", "👯", "Adverb", "-", "Ich komme auch.|I am coming too.|Main bhi aa raha hu.|Er spricht auch Deutsch.|He also speaks German.|Woh bhi German bolta hai."),
+                c("nicht", "not", "nahi", "🚫", "Particle", "Negation", "Das ist nicht richtig.|That is not right.|Yeh sahi nahi hai.|Ich verstehe das nicht.|I don't understand that.|Main yeh nahi samajhta hu."),
+                c("was", "what", "kya", "📦", "Question Word", "Pronoun", "Was ist das?|What is that?|Yeh kya hai?|Was machst du?|What are you doing?|Tum kya kar rahe ho?"),
+                c("wie", "how / what", "kaise / kya", "🤷", "Question Word", "Adverb", "Wie geht es dir?|How are you?|Tum kaise ho?|Wie heißt du?|What is your name?|Tumhara naam kya hai?"),
+                c("wer", "who", "kaun", "❓", "Question Word", "Pronoun", "Wer ist das?|Who is that?|Woh kaun hai?|Wer kommt heute?|Who is coming today?|Aaj kaun aa raha hai?"),
+                c("wo", "where", "kahan", "📍", "Question Word", "Adverb", "Wo wohnen Sie?|Where do you live?|Aap kahan rehte hain?|Wo ist der Bahnhof?|Where is the train station?|Station kahan hai?"),
+                c("woher", "where from", "kahan se", "🛫", "Question Word", "Adverb", "Woher kommen Sie?|Where do you come from?|Aap kahan se aaye hain?|Woher weißt du das?|How do you know that?|Tumhein yeh kaise pata?"),
+                c("welche, welcher", "which", "kaunsa", "👉", "Question Word", "Article", "Welches Buch ist das?|Which book is that?|Yeh kaunsi kitaab hai?|Welcher Tag ist heute?|Which day is today?|Aaj kaunsa din hai?"),
+                c("du", "you (informal)", "tum", "🧑", "Pronoun", "Personal | Nominative", "Wer bist du?|Who are you?|Tum kaun ho?|Woher kommst du?|Where do you come from?|Tum kahan se aaye ho?"),
+                c("dir", "you (informal dative)", "tumhein", "🎁", "Pronoun", "Personal | Dative", "Wie geht es dir?|How are you?|Tum kaise ho?|Das Buch gehört dir.|The book belongs to you.|Yeh kitaab tumhari hai."),
+                c("ich", "I", "main", "🙋", "Pronoun", "Personal | Nominative", "Ich lerne Deutsch.|I learn German.|Main German seekh raha hu.|Ich bin müde.|I am tired.|Main thaka hua hu."),
+                c("er", "he", "woh (ladka)", "👨", "Pronoun", "Personal | Nominative", "Er heißt Thomas.|His name is Thomas.|Uska naam Thomas hai.|Er arbeitet hier.|He works here.|Woh yahan kaam karta hai."),
+                c("sie", "she", "woh (ladki)", "👩", "Pronoun", "Personal | Nominative", "Sie wohnt in Berlin.|She lives in Berlin.|Woh Berlin mein rehti hai.|Sie ist Lehrerin.|She is a teacher.|Woh teacher hai."),
+                c("es", "it", "yeh", "📦", "Pronoun", "Personal | Nominative", "Es regnet.|It is raining.|Barish ho rahi hai.|Wie geht es dir?|How is it going?|Tumhara kya haal hai?"),
+                c("Sie", "you (formal)", "aap", "👔", "Pronoun", "Personal | Nominative", "Woher kommen Sie?|Where do you come from?|Aap kahan se aaye hain?|Wie heißen Sie?|What is your name?|Aapka naam kya hai?"),
+                c("Ihnen", "you (formal dative)", "aapko", "🤝", "Pronoun", "Personal | Dative", "Wie geht es Ihnen?|How are you?|Aap kaise hain?|Ich helfe Ihnen.|I help you.|Main aapki madad karta hu."),
+                c("mein, meine", "my", "mera", "🤲", "Possessive determiner", "-", "Das ist mein Koffer.|That is my suitcase.|Yeh mera suitcase hai.|Meine Familie ist groß.|My family is big.|Mera parivaar bada hai."),
+                c("dein, deine", "your (informal)", "tumhara", "🫵", "Possessive determiner", "-", "Ist das dein Stift?|Is that your pen?|Kya yeh tumhara pen hai?|Wo ist deine Tasche?|Where is your bag?|Tumhara bag kahan hai?"),
+                c("Ihr, Ihre", "your (formal)", "aapka", "🤵", "Possessive determiner", "-", "Ist das Ihr Koffer?|Is that your suitcase?|Kya yeh aapka suitcase hai?|Ihre Adresse, bitte.|Your address, please.|Aapka pata, kripya."),
+                c("in", "in", "mein", "📥", "Preposition", "Two-way", "Ich wohne in Frankfurt.|I live in Frankfurt.|Main Frankfurt mein rehta hu.|Das Buch ist in der Tasche.|The book is in the bag.|Kitaab bag mein hai."),
+                c("aus", "from / out of", "se", "📤", "Preposition", "Dative", "Ich komme aus Deutschland.|I come from Germany.|Main Germany se hu.|Er trinkt aus der Flasche.|He drinks from the bottle.|Woh botal se peeta hai."),
+                c("auf", "on / in (language)", "par / mein", "⬆️", "Preposition", "Two-way", "Das heißt auf Italienisch...|That is called in Italian...|Isey Italian mein kehte hain...|Das Buch liegt auf dem Tisch.|The book is on the table.|Kitaab mez par hai."),
+                c("über", "about / over", "ke baare mein", "💬", "Preposition", "Two-way", "Wir sprechen über den Film.|We talk about the film.|Hum film ke baare mein baat kar rahe hain.|Das Bild hängt über dem Tisch.|The picture hangs over the table.|Tasveer mez ke upar tangi hai."),
+                c("zu", "to / in", "ki taraf / mein", "🎯", "Preposition", "Dative", "Arbeiten Sie zu zweit.|Work in pairs.|Do ki jodi mein kaam karein.|Ich gehe zu Anna.|I am going to Anna.|Main Anna ke paas ja raha hu."),
+                c("nach", "to / after", "ki taraf / ke baad", "⏩", "Preposition", "Dative", "Wir fliegen nach Berlin.|We fly to Berlin.|Hum Berlin ja rahe hain.|Nach der Arbeit gehe ich schlafen.|After work I go to sleep.|Kaam ke baad main sone jata hu."),
+                c("den", "the (masc. acc.)", "the", "🟦", "Article", "Definite | Accusative", "Ich sehe den Mann.|I see the man.|Main aadmi ko dekhta hu.|Wir lesen den Text.|We read the text.|Hum text padhte hain."),
+                c("man", "one / people", "koi / log", "👥", "Pronoun", "Indefinite", "Wie sagt man das?|How does one say that?|Isey kaise kehte hain?|Hier darf man nicht rauchen.|One is not allowed to smoke here.|Yahan dhumrapan karna mana hai."),
+                c("andere, anderer", "other", "doosra", "🔄", "Adjective", "-", "Kennen Sie andere Berufe?|Do you know other professions?|Kya aap aur peshe jaante hain?|Ein anderer Mann ist da.|Another man is there.|Ek doosra aadmi wahan hai."),
+                c("ganz", "quite / whole", "kaafi / poora", "🌕", "Adverb / Adjective", "-", "Ganz gut, danke.|Quite good, thanks.|Kaafi achha, shukriya.|Den ganzen Tag.|The whole day.|Poora din."),
+                c("sehr", "very", "bahut", "⚡", "Adverb", "-", "Sehr gut.|Very good.|Bahut achha.|Er spricht sehr schnell.|He speaks very fast.|Woh bahut tez bolta hai."),
+                c("gut", "good", "achha", "👍", "Adjective / Adverb", "-", "Das Essen ist gut.|The food is good.|Khana achha hai.|Gut gemacht!|Well done!|Bahut achha kiya!"),
+                c("formell", "formal", "aupcharik", "👔", "Adjective", "-", "Das ist formell.|That is formal.|Yeh aupcharik hai.|Ein formeller Brief.|A formal letter.|Ek aupcharik chitthi."),
+                c("informell", "informal", "anaupcharik", "👕", "Adjective", "-", "Wir sprechen informell.|We speak informally.|Hum anaupcharik baat karte hain.|Das Wort ist informell.|The word is informal.|Yeh shabd anaupcharik hai."),
+                c("bekannt", "well-known", "mashhoor", "🌟", "Adjective", "-", "Der Sänger ist bekannt.|The singer is well-known.|Gayak mashhoor hai.|Das Restaurant ist sehr bekannt.|The restaurant is very famous.|Restaurant bahut mashhoor hai."),
+                c("deutsch", "German", "German", "🇩🇪", "Adjective", "-", "Das ist ein deutsches Auto.|That is a German car.|Yeh ek German gadi hai.|Die deutsche Grammatik.|The German grammar.|German vyakaran."),
+                c("kurz", "short", "chhota", "📏", "Adjective", "-", "Der Text ist kurz.|The text is short.|Text chhota hai.|Eine kurze Pause.|A short break.|Ek chhota break."),
+                c("zuerst", "first", "sabse pehle", "1️⃣", "Adverb", "-", "Zuerst lesen wir.|First we read.|Sabse pehle hum padhte hain.|Zuerst die Arbeit.|First the work.|Pehle kaam."),
+                c("dann", "then", "phir", "⏭️", "Adverb", "-", "Und was machen wir dann?|And what do we do then?|Aur phir hum kya karenge?|Dann gehen wir schlafen.|Then we go to sleep.|Phir hum sone jate hain."),
+                c("laut", "loud", "zor se", "📢", "Adjective / Adverb", "-", "Die Musik ist laut.|The music is loud.|Gaane tez hain.|Bitte lesen Sie laut.|Please read aloud.|Kripya zor se padhein."),
+                c("langsam", "slow", "dheere", "🐢", "Adjective / Adverb", "-", "Der Bus ist langsam.|The bus is slow.|Bus dheere hai.|Bitte sprechen Sie langsam.|Please speak slowly.|Kripya dheere bolein."),
+                c("bitte", "please", "kripya", "🙏", "Particle", "-", "Einen Kaffee, bitte.|A coffee, please.|Ek coffee, kripya.|Bitte schön.|You're welcome.|Koi baat nahi."),
+                c("ein bisschen", "a little bit", "thoda sa", "🤏", "Phrase", "Adverbial", "Ich spreche ein bisschen Deutsch.|I speak a little bit of German.|Main thodi si German bolta hu.|Ein bisschen Milch, bitte.|A little bit of milk, please.|Thoda sa doodh, kripya."),
+                c("noch einmal", "once more", "ek baar phir", "🔁", "Phrase", "Adverbial", "Hören Sie noch einmal.|Listen once more.|Ek baar phir sunein.|Bitte sagen Sie das noch einmal.|Please say that once more.|Kripya usey ek baar phir kahein."),
+                c("minus", "minus", "minus / ghatana", "➖", "Preposition", "Math", "Zehn minus fünf ist fünf.|Ten minus five is five.|Dus minus paanch paanch hota hai.|Minus zwei Grad.|Minus two degrees.|Minus do degree.")
+            ]},
+            { title: "Greetings & Communication", cards: [
+                c("hallo", "hello", "namaste", "👋", "Greeting", "-", "Hallo, wie geht's?|Hello, how are you?|Hello, kaise ho?|Sag bitte hallo.|Please say hello.|Kripya hello kaho."),
+                c("guten Tag", "good day", "shubh din", "☀️", "Greeting", "-", "Guten Tag, Herr Müller!|Good day, Mr. Müller!|Namaste, Mr. Müller!|Guten Tag zusammen.|Good day everyone.|Sabko namaste."),
+                c("guten Morgen", "good morning", "shubh prabhat", "🌅", "Greeting", "-", "Guten Morgen!|Good morning!|Shubh prabhat!|Haben Sie gut geschlafen?|Did you sleep well?|Kya aap theek soye?"),
+                c("guten Abend", "good evening", "shubh sandhya", "🌆", "Greeting", "-", "Guten Abend, meine Damen.|Good evening, ladies.|Shubh sandhya, deviyon.|Einen guten Abend!|Have a good evening!|Shubh sandhya!"),
+                c("gute Nacht", "good night", "shubh ratri", "🌃", "Greeting", "-", "Gute Nacht, schlaf gut!|Good night, sleep well!|Shubh ratri, achhe se sona!|Ich sage gute Nacht.|I say good night.|Main shubh ratri kehta hu."),
+                c("tschüs", "bye", "alvida", "🚶", "Greeting", "-", "Tschüs, schönen Tag noch!|Bye, have a nice day!|Alvida, aapka din shubh ho!|Tschüs, bis morgen!|Bye, see you tomorrow!|Bye, kal milte hain!"),
+                c("ciao", "bye", "alvida", "👋", "Greeting", "-", "Ciao, wir sehen uns.|Bye, we will see each other.|Ciao, hum milenge.|Er sagt Ciao.|He says bye.|Woh Ciao kehta hai."),
+                c("bis bald", "see you soon", "jaldi milenge", "🔜", "Phrase", "-", "Tschüs, bis bald!|Bye, see you soon!|Alvida, jaldi milenge!|Wir sehen uns, bis bald.|See you, see you soon.|Hum milenge, jaldi milte hain."),
+                c("auf Wiedersehen", "goodbye", "phir milenge", "🤝", "Greeting", "Formal", "Auf Wiedersehen, Frau Schmidt!|Goodbye, Mrs. Schmidt!|Alvida, Mrs. Schmidt!|Wir sagen auf Wiedersehen.|We say goodbye.|Hum alvida kehte hain."),
+                c("danke", "thank you", "shukriya", "🙌", "Phrase", "-", "Danke für die Hilfe.|Thank you for the help.|Madad ke liye shukriya.|Danke, gleichfalls.|Thanks, likewise.|Shukriya, aapko bhi."),
+                c("danke gut", "thanks, good", "shukriya, theek hu", "👍", "Phrase", "-", "Wie geht's? - Danke gut.|How are you? - Thanks, good.|Kaise ho? - Shukriya, theek hu.|Und dir? - Danke gut.|And you? - Thanks, good.|Aur tum? - Shukriya, theek hu."),
+                c("danke sehr gut", "thanks, very good", "shukriya, bahut achha", "🌟", "Phrase", "-", "Wie geht es Ihnen? - Danke sehr gut.|How are you? - Thanks, very good.|Aap kaise hain? - Shukriya, bahut achha.|Danke sehr gut.|Thanks, very good.|Shukriya, bahut achha."),
+                c("ganz gut", "quite good", "kaafi theek", "🙂", "Phrase", "-", "Mir geht es ganz gut.|I am doing quite well.|Main kaafi theek hu.|Ganz gut, und dir?|Quite good, and you?|Kaafi theek, aur tum?"),
+                c("wie geht's?", "how are you? (informal)", "kaise ho?", "🤷‍♂️", "Phrase", "-", "Hallo! Wie geht's?|Hello! How are you?|Hello! Kaise ho?|Wie geht's dir heute?|How are you doing today?|Aaj tumhara kya haal hai?"),
+                c("wie geht es Ihnen?", "how are you? (formal)", "aap kaise hain?", "👔", "Phrase", "-", "Guten Tag. Wie geht es Ihnen?|Good day. How are you?|Namaste. Aap kaise hain?|Wie geht es Ihnen heute?|How are you today?|Aaj aap kaise hain?"),
+                c("und dir?", "and you? (informal)", "aur tum?", "👉", "Phrase", "-", "Mir geht es gut. Und dir?|I am doing well. And you?|Main theek hu. Aur tum?|Ich komme aus Indien. Und dir?|I come from India. And you?|Main India se hu. Aur tum?"),
+                c("und Ihnen?", "and you? (formal)", "aur aap?", "🤵", "Phrase", "-", "Danke, sehr gut. Und Ihnen?|Thanks, very well. And you?|Shukriya, bahut achha. Aur aap?|Ich trinke Kaffee. Und Ihnen?|I drink coffee. And you?|Main coffee peeta hu. Aur aap?"),
+                c("Entschuldigung", "excuse me / sorry", "maaf kijiye", "🙏", "Noun / Phrase", "die Entschuldigung", "Entschuldigung, wo ist der Bahnhof?|Excuse me, where is the train station?|Maaf kijiye, station kahan hai?|Bitte nehmen Sie meine Entschuldigung an.|Please accept my apology.|Kripya meri maafi swikaar karein."),
+                c("wie bitte?", "pardon?", "kya kaha?", "👂", "Phrase", "-", "Wie bitte? Ich verstehe nicht.|Pardon? I don't understand.|Kya kaha? Main nahi samjha.|Wie bitte? Können Sie das wiederholen?|Pardon? Can you repeat that?|Kya kaha? Kya aap dohra sakte hain?"),
+                c("ich verstehe das nicht", "I don't understand that", "mujhe yeh samajh nahi aaya", "❓", "Phrase", "-", "Entschuldigung, ich verstehe das nicht.|Sorry, I don't understand that.|Maaf kijiye, mujhe yeh samajh nahi aaya.|Können Sie helfen? Ich verstehe das nicht.|Can you help? I don't understand that.|Kya aap madad kar sakte hain? Mujhe samajh nahi aaya."),
+                c("bitte ein bisschen langsamer", "a little slower please", "kripya thoda dheere", "🐢", "Phrase", "-", "Ich lerne noch, bitte ein bisschen langsamer.|I am still learning, a little slower please.|Main abhi seekh raha hu, kripya thoda dheere.|Sprechen Sie bitte ein bisschen langsamer.|Please speak a little slower.|Kripya thoda dheere bolein."),
+                c("wer bist du?", "who are you?", "tum kaun ho?", "❓", "Phrase", "-", "Hallo, wer bist du?|Hello, who are you?|Hello, tum kaun ho?|Ich kenne dich nicht. Wer bist du?|I don't know you. Who are you?|Main tumhein nahi jaanta. Tum kaun ho?"),
+                c("wie heißt du?", "what is your name?", "tumhara naam kya hai?", "📛", "Phrase", "-", "Hallo! Wie heißt du?|Hello! What is your name?|Hello! Tumhara naam kya hai?|Ich heiße Max. Wie heißt du?|My name is Max. What is your name?|Mera naam Max hai. Tumhara naam kya hai?"),
+                c("wie heißen Sie?", "what is your name? (formal)", "aapka naam kya hai?", "👔", "Phrase", "-", "Guten Tag. Wie heißen Sie?|Good day. What is your name?|Namaste. Aapka naam kya hai?|Entschuldigung, wie heißen Sie nochmal?|Excuse me, what is your name again?|Maaf kijiye, aapka naam kya tha?"),
+                c("ich heiße ...", "my name is ...", "mera naam ... hai", "🙋", "Phrase", "-", "Ich heiße Julia.|My name is Julia.|Mera naam Julia hai.|Hallo, ich heiße Thomas.|Hello, my name is Thomas.|Hello, mera naam Thomas hai."),
+                c("mein Name ist ...", "my name is ...", "mera naam ... hai", "🪪", "Phrase", "-", "Mein Name ist Schmidt.|My name is Schmidt.|Mera naam Schmidt hai.|Guten Tag, mein Name ist Anna.|Good day, my name is Anna.|Namaste, mera naam Anna hai."),
+                c("das ist Herr/Frau ...", "this is Mr./Ms. ...", "yeh Mr./Ms. ... hain", "🤝", "Phrase", "-", "Das ist Herr Wagner.|This is Mr. Wagner.|Yeh Mr. Wagner hain.|Das ist Frau Klein.|This is Ms. Klein.|Yeh Ms. Klein hain."),
+                c("hallo, ich bin ...", "hello, I am ...", "hello, main ... hu", "👋", "Phrase", "-", "Hallo, ich bin Niklas.|Hello, I am Niklas.|Hello, main Niklas hu.|Hallo, ich bin der neue Kollege.|Hello, I am the new colleague.|Hello, main naya sahkarmi hu."),
+                c("und du?", "and you?", "aur tum?", "👉", "Phrase", "-", "Ich spiele Fußball. Und du?|I play football. And you?|Main football khelta hu. Aur tum?|Ich bin müde. Und du?|I am tired. And you?|Main thaka hua hu. Aur tum?")
+            ]},
+            { title: "People & Personal Info", cards: [
+                c("die Person, -en", "person", "vyakti", "👤", "Noun", "Gen: Fem. | Art: die | Pl: die Personen", "Sie ist eine nette Person.|She is a nice person.|Woh ek achhi insaan hai.|Wie viele Personen kommen?|How many people are coming?|Kitne log aa rahe hain?"),
+                c("die Situation, -en", "situation", "sthiti", "📍", "Noun", "Gen: Fem. | Art: die | Pl: die Situationen", "Die Situation ist schwierig.|The situation is difficult.|Sthiti mushkil hai.|In dieser Situation...|In this situation...|Is sthiti mein..."),
+                c("der Name, -n", "name", "naam", "📛", "Noun", "Gen: Masc. | Art: der | Pl: die Namen", "Mein Name ist Thomas.|My name is Thomas.|Mera naam Thomas hai.|Bitte schreiben Sie Ihren Namen.|Please write your name.|Kripya apna naam likhein."),
+                c("der Vorname, -n", "first name", "pehla naam", "👤", "Noun", "Gen: Masc. | Art: der | Pl: die Vornamen", "Mein Vorname ist Stefan.|My first name is Stefan.|Mera pehla naam Stefan hai.|Tragen Sie den Vornamen ein.|Enter the first name.|Pehla naam darj karein."),
+                c("der Nachname, -n", "last name", "surname", "👥", "Noun", "Gen: Masc. | Art: der | Pl: die Nachnamen", "Mein Nachname ist Huber.|My last name is Huber.|Mera surname Huber hai.|Wie ist Ihr Nachname?|What is your last name?|Aapka surname kya hai?"),
+                c("die Frau, -en", "woman / Ms.", "aurat / Ms.", "👩", "Noun", "Gen: Fem. | Art: die | Pl: die Frauen", "Die Frau arbeitet im Büro.|The woman works in the office.|Aurat office mein kaam karti hai.|Das ist Frau Bauer.|This is Ms. Bauer.|Yeh Ms. Bauer hain."),
+                c("der Herr, -en", "man / Mr.", "aadmi / Mr.", "👨", "Noun", "Gen: Masc. | Art: der | Pl: die Herren", "Der Herr trinkt Kaffee.|The man drinks coffee.|Aadmi coffee peeta hai.|Guten Tag, Herr Hansen.|Good day, Mr. Hansen.|Namaste, Mr. Hansen."),
+                c("der Partner, -", "partner (male)", "partner (purush)", "👨‍💼", "Noun", "Gen: Masc. | Art: der | Pl: die Partner", "Das ist mein Partner.|This is my partner.|Yeh mera partner hai.|Arbeiten Sie mit einem Partner.|Work with a partner.|Ek partner ke saath kaam karein."),
+                c("die Partnerin, -nen", "partner (female)", "partner (mahila)", "👩‍💼", "Noun", "Gen: Fem. | Art: die | Pl: die Partnerinnen", "Sie ist eine gute Partnerin.|She is a good partner.|Woh ek achhi partner hai.|Ich suche eine Partnerin.|I am looking for a partner.|Main ek partner dhoondh raha hu."),
+                c("der Reiseführer, -", "travel guide (male / book)", "travel guide", "🗺️", "Noun", "Gen: Masc. | Art: der | Pl: die Reiseführer", "Der Reiseführer zeigt die Stadt.|The travel guide shows the city.|Travel guide shehar dikhata hai.|Ich kaufe einen Reiseführer.|I buy a travel guide book.|Main ek travel guide kharidta hu."),
+                c("die Reiseführerin, -nen", "travel guide (female)", "travel guide (mahila)", "🧭", "Noun", "Gen: Fem. | Art: die | Pl: die Reiseführerinnen", "Die Reiseführerin ist nett.|The female travel guide is nice.|Travel guide (mahila) achhi hai.|Wir treffen die Reiseführerin.|We meet the female travel guide.|Hum travel guide se milte hain.")
+            ]},
+            { title: "Verbs (Actions)", cards: [
+                c("zuordnen", "to assign / match", "milana", "🔗", "Verb", vRegSep, "Ordnen Sie die Bilder zu.|Match the pictures.|Tasveeron ko milao.|Ich ordne die Sätze zu.|I assign the sentences.|Main vakyon ko milata hu."),
+                c("zusammengehören", "to belong together", "ek saath milna", "🧩", "Verb", "Type: Regular | Sep. | Aux: haben", "Die Teile gehören zusammen.|The parts belong together.|Yeh hisse ek saath milte hain.|Gehören diese Bücher zusammen?|Do these books belong together?|Kya yeh kitaabein ek saath aati hain?"),
+                c("heißen", "to be called", "naam hona", "📛", "Verb", "Type: Irreg. | Insep. | Aux: haben", "Ich heiße Anna.|My name is Anna.|Mera naam Anna hai.|Wie heißt dieser Ort?|What is this place called?|Is jagah ka naam kya hai?"),
+                c("kennen", "to know (person/place)", "jaanna", "🤝", "Verb", "Type: Mixed | Insep. | Aux: haben", "Ich kenne diese Stadt.|I know this city.|Main is shehar ko jaanta hu.|Kennst du ihn?|Do you know him?|Kya tum usse jaante ho?"),
+                c("machen", "to do / make", "karna", "🛠️", "Verb", vRegIn, "Was machen wir jetzt?|What are we doing now?|Hum ab kya kar rahe hain?|Ich mache Hausaufgaben.|I do homework.|Main homework karta hu."),
+                c("sammeln", "to collect", "jama karna", "📥", "Verb", vRegIn, "Er sammelt Briefmarken.|He collects stamps.|Woh stamps jama karta hai.|Wir sammeln Wörter.|We collect words.|Hum shabd ikattha karte hain."),
+                c("gehen", "to go", "jaana", "🚶", "Verb", vIrrInS, "Ich gehe nach Hause.|I go home.|Main ghar jata hu.|Wie geht es dir?|How are you?|Tum kaise ho?"),
+                c("hören", "to hear / listen", "sunna", "👂", "Verb", vRegIn, "Ich höre Musik.|I listen to music.|Main gaane sunta hu.|Hörst du mich?|Can you hear me?|Kya tum mujhe sun sakte ho?"),
+                c("lesen", "to read", "padhna", "📖", "Verb", "Type: Irreg. | Insep. | Aux: haben", "Sie liest ein Buch.|She reads a book.|Woh ek kitaab padhti hai.|Ich lese die Zeitung.|I read the newspaper.|Main akhbaar padhta hu."),
+                c("sein", "to be", "hona", "🧍", "Verb", vIrrInS, "Ich bin Lehrer.|I am a teacher.|Main teacher hu.|Wo bist du?|Where are you?|Tum kahan ho?"),
+                c("spielen", "to play", "khelna", "🎮", "Verb", vRegIn, "Wir spielen Fußball.|We play football.|Hum football khelte hain.|Spielst du Gitarre?|Do you play guitar?|Kya tum guitar bajate ho?"),
+                c("sprechen", "to speak", "bolna", "🗣️", "Verb", "Type: Irreg. | Insep. | Aux: haben", "Ich spreche Deutsch.|I speak German.|Main German bolta hu.|Sprichst du Englisch?|Do you speak English?|Kya tum English bolte ho?"),
+                c("kommen", "to come", "aana", "🚶‍♂️", "Verb", vIrrInS, "Woher kommst du?|Where do you come from?|Tum kahan se ho?|Er kommt aus Spanien.|He comes from Spain.|Woh Spain se aata hai."),
+                c("wohnen", "to live (reside)", "rehna", "🏠", "Verb", vRegIn, "Wir wohnen im Zentrum.|We live in the center.|Hum center mein rehte hain.|Wo wohnst du?|Where do you live?|Tum kahan rehte ho?"),
+                c("variieren", "to vary", "badalna", "🔀", "Verb", vRegIn, "Die Preise variieren.|The prices vary.|Keematein badalti hain.|Sie können die Sätze variieren.|You can vary the sentences.|Aap vakyon ko badal sakte hain."),
+                c("ergänzen", "to complete", "poora karna", "✏️", "Verb", vRegIn, "Ergänzen Sie den Text.|Complete the text.|Text poora karein.|Ergänze die Lücken.|Fill in the blanks.|Khaali jagah bharein."),
+                c("notieren", "to note", "likhna", "📝", "Verb", vRegIn, "Notieren Sie die Wörter.|Note down the words.|Shabdon ko likh lein.|Ich notiere mir das.|I make a note of that.|Main isey note karta hu."),
+                c("raten", "to guess", "andaza lagana", "🤔", "Verb", vIrrInH, "Raten Sie mal!|Take a guess!|Andaza lagayein!|Ich kann das nicht raten.|I cannot guess that.|Main andaza nahi laga sakta."),
+                c("vorstellen", "to introduce", "parichay dena", "🤝", "Verb", vRegSep, "Darf ich mich vorstellen?|May I introduce myself?|Kya main apna parichay du?|Er stellt seinen Freund vor.|He introduces his friend.|Woh apne dost ka parichay deta hai."),
+                c("mitsprechen", "to speak along", "saath bolna", "🗣️", "Verb", "Type: Irreg. | Sep. | Aux: haben", "Bitte mitsprechen!|Please speak along!|Kripya saath bolein!|Die Klasse spricht mit.|The class speaks along.|Class saath bolti hai."),
+                c("schreiben", "to write", "likhna", "✍️", "Verb", vIrrInH, "Ich schreibe einen Brief.|I write a letter.|Main chitthi likhta hu.|Schreiben Sie Ihren Namen.|Write your name.|Apna naam likhein."),
+                c("fragen", "to ask", "poochhna", "❓", "Verb", vRegIn, "Darf ich fragen?|May I ask?|Kya main poochh sakta hu?|Der Lehrer fragt.|The teacher asks.|Teacher poochhta hai."),
+                c("mitlesen", "to read along", "saath padhna", "📖", "Verb", "Type: Irreg. | Sep. | Aux: haben", "Bitte lesen Sie mit.|Please read along.|Kripya saath padhein.|Er hört und liest mit.|He listens and reads along.|Woh sunta aur saath padhta hai."),
+                c("sagen", "to say", "kehna", "💬", "Verb", vRegIn, "Was möchtest du sagen?|What do you want to say?|Tum kya kehna chahte ho?|Er sagt nichts.|He says nothing.|Woh kuch nahi kehta."),
+                c("buchstabieren", "to spell", "spelling batana", "🔤", "Verb", vRegIn, "Bitte buchstabieren Sie das.|Please spell that.|Kripya iski spelling batayein.|Ich buchstabiere meinen Namen.|I spell my name.|Main apna naam spell karta hu."),
+                c("verstehen", "to understand", "samajhna", "🧠", "Verb", vIrrInH, "Verstehen Sie?|Do you understand?|Kya aap samajhte hain?|Ich verstehe das Problem.|I understand the problem.|Main samasya samajhta hu."),
+                c("lernen", "to learn", "seekhna", "🎓", "Verb", vRegIn, "Wir lernen Vokabeln.|We learn vocabulary.|Hum shabd seekhte hain.|Was lernst du?|What are you learning?|Tum kya seekh rahe ho?"),
+                c("grüßen", "to greet", "abhivadan karna", "👋", "Verb", vRegIn, "Er grüßt die Nachbarn.|He greets the neighbors.|Woh padosiyon ka abhivadan karta hai.|Grüßen Sie Ihre Frau.|Greet your wife.|Apni patni ko namaste kahein."),
+                c("reagieren", "to react", "pratikriya dena", "😮", "Verb", vRegIn, "Wie hat er reagiert?|How did he react?|Usne kaisi pratikriya di?|Sie müssen reagieren.|You must react.|Aapko pratikriya deni chahiye."),
+                c("verabschieden", "to say goodbye", "alvida kehna", "👋", "Verb", vRegIn, "Wir verabschieden uns.|We say goodbye.|Hum alvida kehte hain.|Er verabschiedet Gäste.|He says goodbye to guests.|Woh mehmano ko alvida kehta hai."),
+                c("arbeiten", "to work", "kaam karna", "💼", "Verb", vRegIn, "Ich arbeite jeden Tag.|I work every day.|Main har din kaam karta hu.|Wo arbeiten Sie?|Where do you work?|Aap kahan kaam karte hain?"),
+                c("vergleichen", "to compare", "tulna karna", "⚖️", "Verb", vIrrInH, "Vergleichen Sie die Antworten.|Compare the answers.|Jawaabon ki tulna karein.|Wir vergleichen Preise.|We compare prices.|Hum keemato ki tulna karte hain."),
+                c("suchen", "to search", "dhoondhna", "🔍", "Verb", vRegIn, "Ich suche meine Schlüssel.|I search for my keys.|Main apni chabiyan dhoondh raha hu.|Sie sucht eine Wohnung.|She looks for an apartment.|Woh apartment dhoondh rahi hai.")
+            ]}
+        ];
+
+        const ch1_b = [
+            { title: "Course & Grammar", cards: [
+                c("das Kursplakat, -e", "course poster", "course poster", "🖼️", "Noun", "Gen: Neut. | Art: das | Pl: die Kursplakate", "Wir machen ein Kursplakat.|We make a course poster.|Hum ek course poster banate hain.|Das Kursplakat ist bunt.|The course poster is colorful.|Course poster rangeen hai."),
+                c("das Verb, -en", "verb", "kriya", "⚡", "Noun", "Gen: Neut. | Art: das | Pl: die Verben", "'Kommen' ist ein Verb.|'To come' is a verb.|'Aana' ek kriya hai.|Das Verb ist an Position zwei.|The verb is in position two.|Kriya doosre sthan par hai."),
+                c("das Personalpronomen, -", "personal pronoun", "sarvanam", "➡️", "Noun", "Gen: Neut. | Art: das | Pl: die Personalpronomen", "'Ich' ist ein Personalpronomen.|'I' is a personal pronoun.|'Main' ek sarvanam hai.|Wir lernen die Personalpronomen.|We learn the personal pronouns.|Hum sarvanam seekhte hain."),
+                c("die Antwort, -en", "answer", "jawaab", "💡", "Noun", "Gen: Fem. | Art: die | Pl: die Antworten", "Ihre Antwort ist richtig.|Your answer is correct.|Aapka jawaab sahi hai.|Ich warte auf die Antwort.|I wait for the answer.|Main jawaab ka intezaar karta hu."),
+                c("die W-Frage, -n", "w-question", "w-sawal", "❓", "Noun", "Gen: Fem. | Art: die | Pl: die W-Fragen", "Was ist eine W-Frage?|What is a w-question?|W-sawal kya hai?|Wir üben W-Fragen.|We practice w-questions.|Hum w-sawal ki practice karte hain."),
+                c("der Aussagesatz, \"-e", "declarative sentence", "kathan", "📝", "Noun", "Gen: Masc. | Art: der | Pl: die Aussagesätze", "Bilden Sie einen Aussagesatz.|Form a declarative sentence.|Ek kathan banayein.|Der Aussagesatz endet mit einem Punkt.|The declarative sentence ends with a period.|Kathan full stop par khatam hota hai."),
+                c("das Interview, -s", "interview", "sakshatkar", "🎤", "Noun", "Gen: Neut. | Art: das | Pl: die Interviews", "Ich habe ein Interview.|I have an interview.|Mera ek interview hai.|Das Interview war gut.|The interview was good.|Interview achha tha."),
+                c("der Buchstabe, -n", "letter (alphabet)", "akshar", "🔤", "Noun", "Gen: Masc. | Art: der | Pl: die Buchstaben", "A ist ein Buchstabe.|A is a letter.|A ek akshar hai.|Wie viele Buchstaben?|How many letters?|Kitne akshar?"),
+                c("die Zahl, -en", "number", "sankhya", "🔢", "Noun", "Gen: Fem. | Art: die | Pl: die Zahlen", "Sieben ist eine Zahl.|Seven is a number.|Saat ek sankhya hai.|Lernen Sie die Zahlen.|Learn the numbers.|Sankhyayein seekhein."),
+                c("das Alphabet, -e", "alphabet", "varnamala", "🔠", "Noun", "Gen: Neut. | Art: das | Pl: die Alphabete", "Das deutsche Alphabet.|The German alphabet.|German varnamala.|Das Alphabet hat 26 Buchstaben.|The alphabet has 26 letters.|Varnamala mein 26 akshar hain."),
+                c("die Handynummer, -n", "mobile number", "mobile number", "📱", "Noun", "Gen: Fem. | Art: die | Pl: die Handynummern", "Wie ist deine Handynummer?|What is your mobile number?|Tumhara mobile number kya hai?|Hier ist meine Handynummer.|Here is my mobile number.|Yeh mera mobile number hai."),
+                c("die Telefonnummer, -n", "telephone number", "phone number", "☎️", "Noun", "Gen: Fem. | Art: die | Pl: die Telefonnummern", "Wie lautet Ihre Telefonnummer?|What is your telephone number?|Aapka phone number kya hai?|Die Telefonnummer ist falsch.|The telephone number is wrong.|Phone number galat hai."),
+                c("die E-Mail-Adresse, -n", "email address", "email address", "📧", "Noun", "Gen: Fem. | Art: die | Pl: die E-Mail-Adressen", "Wie ist deine E-Mail-Adresse?|What is your email address?|Tumhara email kya hai?|Ich schreibe an die E-Mail-Adresse.|I write to the email address.|Main email par likhta hu."),
+                c("das Gespräch, -e", "conversation", "baatcheet", "💬", "Noun", "Gen: Neut. | Art: das | Pl: die Gespräche", "Das Gespräch war interessant.|The conversation was interesting.|Baatcheet dilchasp thi.|Das Gespräch ist zu Ende.|The conversation is over.|Baatcheet khatam ho gayi."),
+                c("der Punkt, -e", "period / dot", "bindu", "🔴", "Noun", "Gen: Masc. | Art: der | Pl: die Punkte", "Am Satzende steht ein Punkt.|At the end of the sentence is a period.|Vakya ke ant mein full stop hai.|Die E-Mail hat einen Punkt.|The email has a dot.|Email mein ek dot hai."),
+                c("der Unterstrich, -e", "underscore", "underscore", "🔲", "Noun", "Gen: Masc. | Art: der | Pl: die Unterstriche", "Meine Adresse hat einen Unterstrich.|My address has an underscore.|Mere pate mein ek underscore hai.|Schreiben Sie einen Unterstrich.|Write an underscore.|Ek underscore likhein."),
+                c("der Dialog, -e", "dialogue", "samvaad", "🗨️", "Noun", "Gen: Masc. | Art: der | Pl: die Dialoge", "Hören Sie den Dialog.|Listen to the dialogue.|Samvaad ko sunein.|Lesen Sie den Dialog.|Read the dialogue.|Samvaad padhein."),
+                c("die Tabelle, -n", "table / chart", "table / chart", "📊", "Noun", "Gen: Fem. | Art: die | Pl: die Tabellen", "Sehen Sie die Tabelle an.|Look at the table.|Table ko dekhein.|Füllen Sie die Tabelle aus.|Fill out the table.|Table bharein."),
+                c("der Text, -e", "text", "text", "📄", "Noun", "Gen: Masc. | Art: der | Pl: die Texte", "Lesen Sie den Text.|Read the text.|Text padhein.|Der Text ist lang.|The text is long.|Text lamba hai."),
+                c("die Grammatik, -en", "grammar", "vyakaran", "🔤", "Noun", "Gen: Fem. | Art: die | Pl: die Grammatiken", "Die Grammatik ist wichtig.|Grammar is important.|Vyakaran zaroori hai.|Wir lernen Grammatik.|We learn grammar.|Hum vyakaran seekhte hain."),
+                c("das Redemittel, -", "useful phrase", "upyogi shabd", "🗣️", "Noun", "Gen: Neut. | Art: das | Pl: die Redemittel", "Lernen Sie diese Redemittel.|Learn these useful phrases.|In upyogi shabdon ko seekhein.|Redemittel für den Alltag.|Useful phrases for everyday life.|Rozmara ke liye upyogi shabd."),
+                c("das Subjekt, -e", "subject", "vishay", "📌", "Noun", "Gen: Neut. | Art: das | Pl: die Subjekte", "Das Subjekt steht am Anfang.|The subject is at the beginning.|Vishay shuruaat mein hai.|Unterstreichen Sie das Subjekt.|Underline the subject.|Vishay ko underline karein."),
+                c("das W-Wort, \"-er", "w-word", "w-shabd", "❓", "Noun", "Gen: Neut. | Art: das | Pl: die W-Wörter", "Wo ist das W-Wort?|Where is the w-word?|W-shabd kahan hai?|Was ist ein W-Wort?|What is a w-word?|W-shabd kya hai?"),
+                c("das Kapitel, -", "chapter", "chapter", "📖", "Noun", "Gen: Neut. | Art: das | Pl: die Kapitel", "Wir lesen Kapitel eins.|We read chapter one.|Hum chapter ek padhte hain.|Das Kapitel ist interessant.|The chapter is interesting.|Chapter dilchasp hai."),
+                c("der Kurs, -e", "course", "course", "🏫", "Noun", "Gen: Masc. | Art: der | Pl: die Kurse", "Der Kurs beginnt um neun.|The course starts at nine.|Course nau baje shuru hota hai.|Ich besuche einen Deutschkurs.|I attend a German course.|Main German course kar raha hu."),
+                c("der Lernwortschatz, \"-e", "learning vocabulary", "seekhne wale shabd", "📚", "Noun", "Gen: Masc. | Art: der | Pl: die Lernwortschätze", "Wiederholen Sie den Lernwortschatz.|Review the learning vocabulary.|Seekhne wale shabd dohrayein.|Der Lernwortschatz ist wichtig.|The learning vocabulary is important.|Seekhne wale shabd zaroori hain."),
+                c("die Seite, -n", "page", "page", "📄", "Noun", "Gen: Fem. | Art: die | Pl: die Seiten", "Öffnen Sie Seite zehn.|Open page ten.|Page dus kholein.|Der Text ist auf dieser Seite.|The text is on this page.|Text is page par hai."),
+                c("das Übungsbuch, \"-er", "exercise book", "practice book", "📓", "Noun", "Gen: Neut. | Art: das | Pl: die Übungsbücher", "Machen Sie die Aufgabe im Übungsbuch.|Do the task in the exercise book.|Practice book mein task karein.|Mein Übungsbuch ist hier.|My exercise book is here.|Meri practice book yahan hai.")
+            ]}
+        ];
+
+        const ch1_c = [
+            { title: "Numbers 0-20", cards: [
+                c("null", "zero", "shunya", "0️⃣", "Numeral", "Number", "Wir haben null Probleme.|We have zero problems.|Humein koi samasya nahi hai.|Es ist null Grad.|It is zero degrees.|Zero degree hai."),
+                c("eins", "one", "ek", "1️⃣", "Numeral", "Number", "Lektion eins.|Lesson one.|Lesson ek.|Wir haben eins übrig.|We have one left.|Humare paas ek bacha hai."),
+                c("zwei", "two", "do", "2️⃣", "Numeral", "Number", "Ich habe zwei Brüder.|I have two brothers.|Mere do bhai hain.|Wir brauchen zwei Tickets.|We need two tickets.|Humein do tickets chahiye."),
+                c("drei", "three", "teen", "3️⃣", "Numeral", "Number", "Wir haben drei Kinder.|We have three children.|Humare teen bachhe hain.|Es gibt drei Autos.|There are three cars.|Teen gadiyan hain."),
+                c("vier", "four", "chaar", "4️⃣", "Numeral", "Number", "Ein Auto hat vier Räder.|A car has four wheels.|Gaadi ke chaar pahiye hote hain.|Wir sind zu vier.|There are four of us.|Hum chaar log hain."),
+                c("fünf", "five", "paanch", "5️⃣", "Numeral", "Number", "Wir sehen uns um fünf.|See you at five.|Paanch baje milte hain.|Gib mir fünf Euro.|Give me five euros.|Mujhe paanch euro do."),
+                c("sechs", "six", "chhah", "6️⃣", "Numeral", "Number", "In sechs Stunden.|In six hours.|Chhah ghante mein.|Ich habe sechs Aufgaben.|I have six exercises.|Mere paas chhah exercise hain."),
+                c("sieben", "seven", "saat", "7️⃣", "Numeral", "Number", "Die Woche hat sieben Tage.|The week has seven days.|Hafte mein saat din hote hain.|Sieben ist meine Glückszahl.|Seven is my lucky number.|Saat mera lucky number hai."),
+                c("acht", "eight", "aath", "8️⃣", "Numeral", "Number", "Das Geschäft öffnet um acht.|The shop opens at eight.|Dukaan aath baje khulti hai.|Ich habe acht Äpfel.|I have eight apples.|Mere paas aath seb hain."),
+                c("neun", "nine", "nau", "9️⃣", "Numeral", "Number", "Neun Leute kommen.|Nine people are coming.|Nau log aa rahe hain.|Er arbeitet bis neun.|He works until nine.|Woh nau baje tak kaam karta hai."),
+                c("zehn", "ten", "dus", "🔟", "Numeral", "Number", "Ich habe zehn Euro.|I have ten euros.|Mere paas dus euro hain.|Der Kurs beginnt um zehn.|The course starts at ten.|Course dus baje shuru hota hai."),
+                c("elf", "eleven", "gyarah", "1️⃣1️⃣", "Numeral", "Number", "Die Mannschaft hat elf Spieler.|The team has eleven players.|Team mein gyarah khiladi hain.|Ich bin elf Jahre alt.|I am eleven years old.|Main gyarah saal ka hu."),
+                c("zwölf", "twelve", "barah", "1️⃣2️⃣", "Numeral", "Number", "Ein Jahr hat zwölf Monate.|A year has twelve months.|Ek saal mein barah mahine hote hain.|Wir essen um zwölf.|We eat at twelve.|Hum barah baje khate hain."),
+                c("dreizehn", "thirteen", "terah", "1️⃣3️⃣", "Numeral", "Number", "Er hat dreizehn Bücher.|He has thirteen books.|Uske paas terah kitaabein hain.|Zimmer dreizehn.|Room thirteen.|Kamra terah."),
+                c("vierzehn", "fourteen", "chaudah", "1️⃣4️⃣", "Numeral", "Number", "In vierzehn Tagen.|In fourteen days.|Chaudah dino mein.|Ich habe vierzehn Fragen.|I have fourteen questions.|Mere paas chaudah sawal hain."),
+                c("fünfzehn", "fifteen", "pandrah", "1️⃣5️⃣", "Numeral", "Number", "Das dauert fünfzehn Minuten.|That takes fifteen minutes.|Isme pandrah minute lagte hain.|Fünfzehn Personen.|Fifteen people.|Pandrah log."),
+                c("sechzehn", "sixteen", "solah", "1️⃣6️⃣", "Numeral", "Number", "Sie ist sechzehn Jahre alt.|She is sixteen years old.|Woh solah saal ki hai.|Sechzehn Stunden.|Sixteen hours.|Solah ghante."),
+                c("siebzehn", "seventeen", "satrah", "1️⃣7️⃣", "Numeral", "Number", "Der Film beginnt um siebzehn Uhr.|The film starts at 5 PM.|Film 5 baje shuru hoti hai.|Er hat siebzehn Euro.|He has seventeen euros.|Uske paas satrah euro hain."),
+                c("achtzehn", "eighteen", "atharah", "1️⃣8️⃣", "Numeral", "Number", "Ich bin achtzehn!|I am eighteen!|Main atharah ka hu!|Das kostet achtzehn Euro.|That costs eighteen euros.|Yeh atharah euro ka hai."),
+                c("neunzehn", "nineteen", "unnees", "1️⃣9️⃣", "Numeral", "Number", "Er ist neunzehn Jahre alt.|He is nineteen years old.|Woh unnees saal ka hai.|Neunzehn Kapitel.|Nineteen chapters.|Unnees chapter."),
+                c("zwanzig", "twenty", "bees", "2️⃣0️⃣", "Numeral", "Number", "Ich brauche zwanzig Minuten.|I need twenty minutes.|Mujhe bees minute chahiye.|Wir haben zwanzig Gäste.|We have twenty guests.|Humare bees mehmaan hain.")
+            ]},
+            { title: "Additional Words", cards: [
+                c("das Befinden (Sg.)", "condition / state of health", "haalat", "❤️‍🩹", "Noun", "Gen: Neut. | Art: das | No Plural", "Wie ist Ihr Befinden?|How is your condition?|Aapki haalat kaisi hai?|Er fragt nach dem Befinden.|He asks about the health condition.|Woh haalat ke baare mein poochhta hai."),
+                c("darauf", "upon it / on it", "us par", "🔝", "Adverb", "Pronominal Adverb", "Das Buch liegt darauf.|The book is lying upon it.|Kitaab us par rakhi hai.|Wir freuen uns darauf.|We look forward to it.|Hum iska intezaar karte hain."),
+                c("weitere, weiterer", "further / additional", "aur / anya", "➕", "Adjective", "-", "Gibt es weitere Fragen?|Are there further questions?|Kya aur sawal hain?|Weitere Informationen folgen.|Further information follows.|Aur jankari aage aayegi."),
+                c("zweit", "two / pair", "do / joda", "✌️", "Adverb", "Usually 'zu zweit'", "Wir sind zu zweit.|There are two of us.|Hum do hain.|Sie arbeiten zu zweit.|They work in pairs.|Woh jodi mein kaam karte hain."),
+                c("zu zweit", "in pairs", "jodi mein", "👫", "Phrase", "-", "Arbeiten Sie zu zweit.|Work in pairs.|Jodi mein kaam karein.|Wir spielen zu zweit.|We play in pairs.|Hum do log khelte hain.")
+            ]}
+        ];
+
+        const ch2 = [
+            { title: "Hobbies & Activities", cards: [
+                c("gern", "gladly / to like", "khushi se / pasand", "❤️", "Adverb", "-", "Ich schwimme gern.|I like to swim.|Mujhe tairna pasand hai.|Er liest gern.|He likes to read.|Usse padhna pasand hai."),
+                c("fotografieren", "to photograph", "photo kheenchna", "📸", "Verb", vRegIn, "Sie fotografiert gern.|She likes to take photos.|Usse photo kheenchna pasand hai.|Darf ich fotografieren?|May I take photos?|Kya main photo kheench sakta hu?"),
+                c("joggen", "to jog", "jogging karna", "🏃", "Verb", vRegIn, "Ich jogge morgens.|I jog in the morning.|Main subah jog karta hu.|Joggen ist gesund.|Jogging is healthy.|Jogging sehatmand hai."),
+                c("singen", "to sing", "gaana gaana", "🎤", "Verb", vIrrInH, "Sie singt im Chor.|She sings in the choir.|Woh choir mein gaati hai.|Wir singen ein Lied.|We sing a song.|Hum gaana gaate hain."),
+                c("tanzen", "to dance", "naachna", "💃", "Verb", vRegIn, "Gehen wir tanzen?|Are we going dancing?|Kya hum naachne chalein?|Sie tanzt sehr schön.|She dances very beautifully.|Woh bahut sundar naachti hai."),
+                c("kochen", "to cook", "khana banana", "🍳", "Verb", vRegIn, "Ich koche das Essen.|I cook the meal.|Main khana banata hu.|Er kocht gern Spaghetti.|He likes to cook spaghetti.|Usse spaghetti banana pasand hai."),
+                c("reisen", "to travel", "safar karna", "✈️", "Verb", "Type: Reg. | Insep. | Aux: sein", "Ich reise durch Europa.|I travel through Europe.|Main Europe mein safar karta hu.|Reisen ist toll.|Traveling is great.|Safar karna badhiya hai."),
+                c("schwimmen", "to swim", "tairna", "🏊", "Verb", vIrrInS, "Wir schwimmen im See.|We swim in the lake.|Hum jheel mein tairte hain.|Er schwimmt schnell.|He swims fast.|Woh tez tairta hai."),
+                c("ins Kino gehen", "to go to the cinema", "cinema jaana", "🍿", "Phrase", "Verb phrase", "Wir gehen ins Kino.|We go to the cinema.|Hum cinema jate hain.|Gehst du gern ins Kino?|Do you like going to the cinema?|Kya tumhe cinema jana pasand hai?"),
+                c("lesen", "to read", "padhna", "📖", "Verb", vIrrInH, "Ich lese ein Buch.|I read a book.|Main kitaab padhta hu.|Liest du gern?|Do you like to read?|Kya tumhein padhna pasand hai?"),
+                c("Musik hören", "to listen to music", "sangeet sunna", "🎵", "Phrase", "Verb phrase", "Ich höre gern Musik.|I like listening to music.|Mujhe sangeet sunna pasand hai.|Er hört Musik.|He listens to music.|Woh sangeet sunta hai."),
+                c("Fußball spielen", "to play football", "football khelna", "⚽", "Phrase", "Verb phrase", "Wir spielen Fußball.|We play football.|Hum football khelte hain.|Er spielt gern Fußball.|He likes to play football.|Usse football khelna pasand hai."),
+                c("lieben", "to love", "pyar karna", "💖", "Verb", vRegIn, "Ich liebe meine Familie.|I love my family.|Main apne parivaar se pyar karta hu.|Sie liebt Schokolade.|She loves chocolate.|Usse chocolate pasand hai.")
+            ]},
+            { title: "People & Friends", cards: [
+                c("die Leute (Pl.)", "people", "log", "👥", "Noun", "Gen: Plural | Art: die", "Die Leute sind nett.|The people are nice.|Log achhe hain.|Viele Leute sind hier.|Many people are here.|Yahan bahut log hain."),
+                c("der Freund, -e", "friend (male)", "dost (ladka)", "🧑‍🤝‍🧑", "Noun", "Gen: Masc. | Art: der | Pl: die Freunde", "Das ist mein Freund.|This is my friend.|Yeh mera dost hai.|Er ist ein guter Freund.|He is a good friend.|Woh ek achha dost hai."),
+                c("die Freundin, -nen", "friend (female)", "dost (ladki)", "👭", "Noun", "Gen: Fem. | Art: die | Pl: die Freundinnen", "Sie ist meine Freundin.|She is my friend.|Woh meri dost hai.|Meine Freundin kommt heute.|My friend comes today.|Meri dost aaj aa rahi hai."),
+                c("der Kollege, -n", "colleague (male)", "sahkarmi (ladka)", "👨‍💻", "Noun", "Gen: Masc. | Art: der | Pl: die Kollegen", "Er ist mein Kollege.|He is my colleague.|Woh mera sahkarmi hai.|Der Kollege ist neu.|The colleague is new.|Sahkarmi naya hai."),
+                c("die Kollegin, -nen", "colleague (female)", "sahkarmi (ladki)", "👩‍💻", "Noun", "Gen: Fem. | Art: die | Pl: die Kolleginnen", "Meine Kollegin heißt Anna.|My colleague's name is Anna.|Meri sahkarmi ka naam Anna hai.|Die Kollegin arbeitet viel.|The colleague works a lot.|Sahkarmi bahut kaam karti hai.")
+            ]},
+            { title: "Hobbies & Leisure Things", cards: [
+                c("die Musik (Sg.)", "music", "sangeet", "🎵", "Noun", "Gen: Fem. | Art: die | No Plural", "Die Musik ist zu laut.|The music is too loud.|Sangeet bahut tez hai.|Ich höre Musik.|I listen to music.|Main sangeet sunta hu."),
+                c("das Buch, \"-er", "book", "kitaab", "📖", "Noun", "Gen: Neut. | Art: das | Pl: die Bücher", "Das Buch ist spannend.|The book is exciting.|Kitaab dilchasp hai.|Ich lese ein Buch.|I am reading a book.|Main ek kitaab padh raha hu."),
+                c("der Fußball, \"-e", "football", "football", "⚽", "Noun", "Gen: Masc. | Art: der | Pl: die Fußbälle", "Wir schauen Fußball.|We watch football.|Hum football dekhte hain.|Der Fußball ist rund.|The football is round.|Football gol hai."),
+                c("die Sensation, -en", "sensation", "sanasani", "✨", "Noun", "Gen: Fem. | Art: die | Pl: die Sensationen", "Das ist eine Sensation!|That is a sensation!|Yeh ek sanasani hai!|Der Film ist eine Sensation.|The film is a sensation.|Film ek sanasani hai."),
+                c("das Foto, -s", "photo", "photo / tasveer", "📸", "Noun", "Gen: Neut. | Art: das | Pl: die Fotos", "Das ist ein schönes Foto.|That is a beautiful photo.|Yeh ek sundar photo hai.|Ich mache ein Foto.|I take a photo.|Main ek photo kheenchta hu."),
+                c("die Spaghetti (Pl.)", "spaghetti", "spaghetti", "🍝", "Noun", "Gen: Plural | Art: die", "Ich koche Spaghetti.|I cook spaghetti.|Main spaghetti banata hu.|Die Spaghetti sind lecker.|The spaghetti are tasty.|Spaghetti swadisht hain."),
+                c("das Hobby, -s", "hobby", "shauk", "🎨", "Noun", "Gen: Neut. | Art: das | Pl: die Hobbys", "Mein Hobby ist Lesen.|My hobby is reading.|Mera shauk padhna hai.|Was ist dein Hobby?|What is your hobby?|Tumhara shauk kya hai?")
+            ]},
+            { title: "Small Words & Expressions", cards: [
+                c("ja", "yes", "haan", "✅", "Adverb", "-", "Ja, das stimmt.|Yes, that is correct.|Haan, yeh sahi hai.|Hast du Zeit? Ja.|Do you have time? Yes.|Kya tumhare paas waqt hai? Haan."),
+                c("nein", "no", "nahi", "❌", "Adverb", "-", "Nein, danke.|No, thank you.|Nahi, shukriya.|Kommst du? Nein.|Are you coming? No.|Kya tum aa rahe ho? Nahi."),
+                c("so", "so / thus", "aisa / theek-thaak", "🤷", "Adverb", "-", "Es geht so.|It's so-so.|Theek-thaak hai.|Das ist so teuer.|That is so expensive.|Yeh itna mehenga hai."),
+                c("sehr", "very", "bahut", "⚡", "Adverb", "-", "Sehr gut.|Very good.|Bahut achha.|Er spricht sehr schnell.|He speaks very fast.|Woh bahut tez bolta hai."),
+                c("nicht so gern", "not so much", "itna pasand nahi", "🙅", "Phrase", "-", "Ich koche nicht so gern.|I don't like cooking so much.|Mujhe khana banana itna pasand nahi.|Schwimmst du gern? Nicht so gern.|Do you like swimming? Not so much.|Kya tumhe tairna pasand hai? Itna nahi."),
+                c("wirklich", "really", "sach mein", "😲", "Adverb", "-", "Ist das wirklich wahr?|Is that really true?|Kya yeh sach mein sach hai?|Ich bin wirklich müde.|I am really tired.|Main sach mein thaka hua hu."),
+                c("am", "at / on (days)", "ko / par", "📅", "Preposition", "an + dem", "Am Montag.|On Monday.|Somvaar ko.|Am Wochenende.|On the weekend.|Weekend par."),
+                c("im Moment", "at the moment", "is waqt", "⏳", "Phrase", "-", "Im Moment habe ich keine Zeit.|At the moment I have no time.|Is waqt mere paas samay nahi hai.|Er liest im Moment ein Buch.|He is reading a book at the moment.|Woh is waqt kitaab padh raha hai."),
+                c("morgen", "tomorrow", "kal", "➡️", "Adverb", "-", "Wir sehen uns morgen.|We will see each other tomorrow.|Hum kal milenge.|Morgen habe ich frei.|Tomorrow I have the day off.|Kal meri chhutti hai."),
+                c("viel", "a lot / much", "bahut", "📈", "Adverb / Adjective", "-", "Ich habe viel Arbeit.|I have a lot of work.|Mere paas bahut kaam hai.|Er reist viel.|He travels a lot.|Woh bahut safar karta hai."),
+                c("jede, jeder", "every", "har ek", "🔄", "Pronoun", "-", "Jeder Schüler hat ein Buch.|Every student has a book.|Har chhatra ke paas kitaab hai.|Jede Woche.|Every week.|Har hafte."),
+                c("mit", "with", "ke saath", "🤝", "Preposition", "Dative", "Mit Milch.|With milk.|Doodh ke saath.|Ich fahre mit dem Bus.|I travel with the bus.|Main bus se jata hu."),
+                c("durch", "through", "ke madhyam se", "➡️", "Preposition", "Accusative", "Wir gehen durch den Park.|We walk through the park.|Hum park ke beech se jate hain.|Durch das Fenster.|Through the window.|Khidki se."),
+                c("für", "for", "ke liye", "🎁", "Preposition", "Accusative", "Das ist für dich.|That is for you.|Yeh tumhare liye hai.|Ich lerne für den Test.|I study for the test.|Main test ke liye padh रहा hu."),
+                c("von", "from / by", "se / dwara", "⬅️", "Preposition", "Dative", "Das Buch ist von Max.|The book is by Max.|Kitaab Max dwara likhi gayi hai.|Ich komme von der Arbeit.|I come from work.|Main kaam se aa raha hu."),
+                c("bei", "at / with", "par / saath", "🏢", "Preposition", "Dative", "Ich arbeite bei Siemens.|I work at Siemens.|Main Siemens mein kaam karta hu.|Ich wohne bei meinen Eltern.|I live with my parents.|Main apne mata-pita ke saath rehta hu."),
+                c("pro", "per", "prati", "📊", "Preposition", "-", "100 Kilometer pro Stunde.|100 kilometers per hour.|100 kilometer prati ghanta.|Ein Apfel pro Tag.|An apple per day.|Ek seb prati din."),
+                c("aber", "but", "lekin", "🛑", "Conjunction", "-", "Teuer, aber schön.|Expensive, but beautiful.|Mehenga, lekin sundar.|Ich komme, aber später.|I am coming, but later.|Main aunga, lekin baad mein."),
+                c("alt", "old", "purana / umra", "🧓", "Adjective", "-", "Wie alt bist du?|How old are you?|Tumhari umra kya hai?|Das Haus ist alt.|The house is old.|Ghar purana hai."),
+                c("groß", "big / tall", "bada / lamba", "🐘", "Adjective", "-", "Die Stadt ist groß.|The city is big.|Shehar bada hai.|Er ist sehr groß.|He is very tall.|Woh bahut lamba hai."),
+                c("hier", "here", "yahan", "📍", "Adverb", "-", "Ich bin hier.|I am here.|Main yahan hu.|Hier ist das Haus.|Here is the house.|Ghar yahan hai."),
+                c("meistens", "mostly", "zyadatar", "📊", "Adverb", "-", "Ich trinke meistens Wasser.|I mostly drink water.|Main zyadatar paani peeta hu.|Sonntags bin ich meistens zu Hause.|On Sundays I am mostly at home.|Raviwaar ko main zyadatar ghar par hota hu."),
+                c("noch", "still / yet", "abhi bhi / aur", "⏳", "Adverb", "-", "Ich habe noch eine Frage.|I have one more question.|Mera ek aur sawal hai.|Es ist noch früh.|It is still early.|Abhi jaldi hai."),
+                c("leider", "unfortunately", "badkismati se", "😞", "Adverb", "-", "Leider habe ich keine Zeit.|Unfortunately I have no time.|Badkismati se mere paas waqt nahi hai.|Der Zug ist leider verspätet.|The train is unfortunately delayed.|Train badkismati se late hai."),
+                c("oft", "often", "aksar", "🔁", "Adverb", "-", "Ich gehe oft ins Kino.|I often go to the cinema.|Main aksar cinema jata hu.|Liest du oft?|Do you read often?|Kya tum aksar padhte ho?"),
+                c("bestimmt", "definite(ly)", "nishchit roop se", "✅", "Adjective / Adverb", "-", "Der bestimmte Artikel.|The definite article.|Nishchit article.|Das ist bestimmt wahr.|That is definitely true.|Yeh pakka sach hai."),
+                c("mehrere", "several", "kayi", "📚", "Pronoun", "-", "Es gibt mehrere Möglichkeiten.|There are several possibilities.|Kayi sambhavnayein hain.|Ich habe mehrere Fragen.|I have several questions.|Mere kayi sawal hain."),
+                c("männlich", "male", "purush", "♂️", "Adjective", "-", "Das ist männlich.|That is male.|Yeh purush hai.|Kreuzen Sie 'männlich' an.|Tick 'male'.|'Male' par tick karein."),
+                c("weiblich", "female", "mahila", "♀️", "Adjective", "-", "Das ist weiblich.|That is female.|Yeh mahila hai.|Geschlecht: weiblich.|Gender: female.|Ling: mahila."),
+                c("persönlich", "personal", "vyaktigat", "👤", "Adjective", "-", "Persönliche Angaben.|Personal details.|Vyaktigat jankari.|Ich kenne ihn persönlich.|I know him personally.|Main usse vyaktigat roop se jaanta hu."),
+                c("eigene, eigener", "own", "apna", "🏠", "Adjective", "-", "Mein eigenes Auto.|My own car.|Meri apni gadi.|Ein eigenes Zimmer.|An own room.|Ek apna kamra."),
+                c("neu", "new", "naya", "🆕", "Adjective", "-", "Das ist ein neues Buch.|That is a new book.|Yeh ek nayi kitaab hai.|Ich habe ein neues Telefon.|I have a new phone.|Mere paas ek naya phone hai."),
+                c("super", "super", "bahut badhiya", "🦸", "Adjective / Adverb", "-", "Das Wetter ist super.|The weather is super.|Mausam bahut badhiya hai.|Das ist super.|That is super.|Yeh bahut badhiya hai."),
+                c("toll", "great", "zabardast", "🤩", "Adjective", "-", "Eine tolle Idee.|A great idea.|Ek zabardast idea.|Der Film war toll.|The movie was great.|Film zabardast thi."),
+                c("lustig", "funny", "mazedaar", "😂", "Adjective", "-", "Der Film ist lustig.|The film is funny.|Film mazedaar hai.|Ein lustiger Abend.|A funny evening.|Ek mazedaar shaam."),
+                c("frei", "free / available", "azaad / free", "🕊️", "Adjective", "-", "Ich habe heute frei.|I am free today (have the day off).|Meri aaj chhutti hai.|Ist der Platz frei?|Is the seat free?|Kya yeh jagah khali hai?")
+            ]},
+            { title: "Verbs (More Actions)", cards: [
+                c("ankreuzen", "to tick / mark", "tick karna", "☑️", "Verb", vRegSep, "Kreuzen Sie die Antwort an.|Tick the answer.|Jawaab par tick karein.|Bitte ankreuzen.|Please tick.|Kripya tick karein."),
+                c("nennen", "to name", "naam batana", "📛", "Verb", "Type: Mixed | Insep. | Aux: haben", "Nennen Sie drei Berufe.|Name three professions.|Teen pesho ke naam batayein.|Er nennt das Kind Max.|He names the child Max.|Woh bachhe ka naam Max rakhta hai."),
+                c("nachsprechen", "to repeat (after)", "dohrana", "🗣️", "Verb", "Type: Irreg. | Sep. | Aux: haben", "Bitte sprechen Sie nach.|Please repeat.|Kripya dohrayein.|Die Schüler sprechen nach.|The students repeat.|Vidyarthi dohrate hain."),
+                c("achten", "to pay attention", "dhyaan dena", "👀", "Verb", vRegIn, "Achten Sie auf die Endung.|Pay attention to the ending.|Ending par dhyaan dein.|Er achtet auf den Verkehr.|He pays attention to the traffic.|Woh traffic par dhyaan deta hai."),
+                c("passen", "to fit / match", "mel khana", "🧩", "Verb", vRegIn, "Was passt zusammen?|What fits together?|Kya mel khata hai?|Das Hemd passt gut.|The shirt fits well.|Shirt achhi fit aati hai."),
+                c("suchen", "to search", "dhoondhna", "🔍", "Verb", vRegIn, "Ich suche das Wörterbuch.|I search for the dictionary.|Main dictionary dhoondh raha hu.|Sie sucht Arbeit.|She looks for work.|Woh kaam dhoondh rahi hai."),
+                c("vergleichen", "to compare", "tulna karna", "⚖️", "Verb", vIrrInH, "Vergleichen Sie die Lösungen.|Compare the solutions.|Solutions ki tulna karein.|Wir vergleichen Preise.|We compare prices.|Hum keemato ki tulna karte hain."),
+                c("fahren", "to drive / go", "chalana / jana", "🚗", "Verb", vIrrInS, "Ich fahre nach Berlin.|I drive to Berlin.|Main Berlin jata hu.|Er fährt mit dem Auto.|He drives the car.|Woh gadi chalata hai."),
+                c("freihaben", "to have time off", "chhutti hona", "🏖️", "Verb", "Type: Irreg. | Sep. | Aux: haben", "Morgen habe ich frei.|Tomorrow I have the day off.|Kal meri chhutti hai.|Wann haben Sie frei?|When do you have time off?|Aapki chhutti kab hai?"),
+                c("haben", "to have", "paas hona", "🤲", "Verb", vIrrInH, "Ich habe Zeit.|I have time.|Mere paas waqt hai.|Hast du Geld?|Do you have money?|Kya tumhare paas paise hain?"),
+                c("warten", "to wait", "intezaar karna", "⏳", "Verb", vRegIn, "Bitte warten Sie.|Please wait.|Kripya intezaar karein.|Ich warte auf den Bus.|I wait for the bus.|Main bus ka intezaar karta hu."),
+                c("unterstreichen", "to underline", "underline karna", "〰️", "Verb", vIrrInH, "Unterstreichen Sie das Verb.|Underline the verb.|Verb ko underline karein.|Ich unterstreiche das Wort.|I underline the word.|Main shabd ko underline karta hu."),
+                c("präsentieren", "to present", "pesh karna", "📊", "Verb", vRegIn, "Wir präsentieren das Projekt.|We present the project.|Hum project pesh karte hain.|Er präsentiert gut.|He presents well.|Woh achha pesh karta hai."),
+                c("tauschen", "to swap / exchange", "badalna", "🔄", "Verb", vRegIn, "Wollen wir tauschen?|Do we want to swap?|Kya hum badalna chahte hain?|Sie tauschen die Karten.|They swap the cards.|Woh cards badalte hain."),
+                c("berichten", "to report", "report karna", "📰", "Verb", vRegIn, "Berichten Sie im Kurs.|Report in the class.|Class mein report karein.|Die Zeitung berichtet.|The newspaper reports.|Akhbaar report karta hai."),
+                c("studieren", "to study", "padhai karna", "🎓", "Verb", vRegIn, "Ich studiere in München.|I study in Munich.|Main Munich mein padhta hu.|Was studierst du?|What are you studying?|Tum kya padh rahe ho?"),
+                c("ansehen", "to look at", "dekhna", "👀", "Verb", "Type: Irreg. | Sep. | Aux: haben", "Sehen Sie das Foto an.|Look at the photo.|Photo ko dekhein.|Ich sehe mir den Film an.|I watch the movie.|Main film dekhta hu."),
+                c("stehen", "to stand", "khada hona", "🧍", "Verb", vIrrInH, "Der Mann steht da.|The man stands there.|Aadmi wahan khada hai.|Wo steht das Auto?|Where is the car standing?|Gadi kahan khadi hai?"),
+                c("merken", "to remember", "yaad rakhna", "🧠", "Verb", vRegIn, "Ich merke mir das Wort.|I remember the word.|Main shabd yaad rakhta hu.|Merkst du dir die Nummer?|Do you remember the number?|Kya tum number yaad rakhte ho?"),
+                c("wählen", "to choose", "chunna", "👆", "Verb", vRegIn, "Wählen Sie eine Antwort.|Choose an answer.|Ek jawaab chunein.|Wir wählen den Kurs.|We choose the course.|Hum course chunte hain."),
+                c("verabreden", "to arrange to meet", "plan banana", "📅", "Verb", vRegIn, "Wir verabreden uns.|We arrange to meet.|Hum milne ka plan banate hain.|Wollen wir uns verabreden?|Shall we arrange to meet?|Kya hum milne ka plan banayein?"),
+                c("kontrollieren", "to check / control", "check karna", "✅", "Verb", vRegIn, "Kontrollieren Sie die Lösung.|Check the solution.|Solution check karein.|Der Arzt kontrolliert.|The doctor checks.|Doctor jaanch karta hai."),
+                c("lösen", "to solve", "hal karna", "🧩", "Verb", vRegIn, "Wir lösen das Problem.|We solve the problem.|Hum samasya hal karte hain.|Lösen Sie die Aufgabe.|Solve the task.|Task hal karein."),
+                c("korrigieren", "to correct", "sahi karna", "✏️", "Verb", vRegIn, "Korrigieren Sie die Fehler.|Correct the mistakes.|Galtiyan sahi karein.|Der Lehrer korrigiert.|The teacher corrects.|Teacher sahi karta hai.")
+            ]}
+        ];
+
+        const ch2_b = [
+            { title: "Weekdays & Time", cards: [
+                c("der Montag, -e", "Monday", "Somvaar", "📅", "Noun", "Gen: Masc. | Art: der | Pl: die Montage", "Heute ist Montag.|Today is Monday.|Aaj Somvaar hai.|Am Montag arbeite ich.|I work on Monday.|Somvaar ko main kaam karta hu."),
+                c("der Dienstag, -e", "Tuesday", "Mangalvaar", "📅", "Noun", "Gen: Masc. | Art: der | Pl: die Dienstage", "Morgen ist Dienstag.|Tomorrow is Tuesday.|Kal Mangalvaar hai.|Dienstags spiele ich Tennis.|On Tuesdays I play tennis.|Mangalvaar ko main tennis khelta hu."),
+                c("der Mittwoch, -e", "Wednesday", "Budhvaar", "📅", "Noun", "Gen: Masc. | Art: der | Pl: die Mittwoche", "Der Test ist am Mittwoch.|The test is on Wednesday.|Test Budhvaar ko hai.|Mittwoch ist in der Mitte.|Wednesday is in the middle.|Budhvaar beech mein hai."),
+                c("der Donnerstag, -e", "Thursday", "Guruvaar", "📅", "Noun", "Gen: Masc. | Art: der | Pl: die Donnerstage", "Wir sehen uns am Donnerstag.|We'll see each other on Thursday.|Hum Guruvaar ko milenge.|Donnerstag habe ich frei.|I have Thursday off.|Guruvaar ko meri chhutti hai."),
+                c("der Freitag, -e", "Friday", "Shukravaar", "📅", "Noun", "Gen: Masc. | Art: der | Pl: die Freitage", "Endlich Freitag!|Finally Friday!|Aakhir kaar Shukravaar!|Am Freitagabend.|On Friday evening.|Shukravaar ki shaam ko."),
+                c("der Samstag, -e", "Saturday", "Shanivaar", "📅", "Noun", "Gen: Masc. | Art: der | Pl: die Samstage", "Am Samstag gehe ich einkaufen.|I go shopping on Saturday.|Shanivaar ko main kharidari karta hu.|Samstag ist toll.|Saturday is great.|Shanivaar badhiya hai."),
+                c("der Sonntag, -e", "Sunday", "Ravivaar", "📅", "Noun", "Gen: Masc. | Art: der | Pl: die Sonntage", "Sonntag ist Wochenende.|Sunday is the weekend.|Ravivaar weekend hai.|Am Sonntag schlafe ich lange.|On Sunday I sleep in.|Ravivaar ko main der tak sota hu."),
+                c("der Wochentag, -e", "day of the week", "hafte ka din", "🗓️", "Noun", "Gen: Masc. | Art: der | Pl: die Wochentage", "Welcher Wochentag ist heute?|What day of the week is it today?|Aaj kaunsa din hai?|Sieben Wochentage.|Seven days of the week.|Hafte ke saat din."),
+                c("der Tag, -e", "day", "din", "☀️", "Noun", "Gen: Masc. | Art: der | Pl: die Tage", "Guten Tag!|Good day!|Shubh din!|Ein schöner Tag.|A beautiful day.|Ek sundar din."),
+                c("der Abend, -e", "evening", "shaam", "🌆", "Noun", "Gen: Masc. | Art: der | Pl: die Abende", "Guten Abend!|Good evening!|Shubh sandhya!|Am Abend lese ich.|In the evening I read.|Shaam ko main padhta hu."),
+                c("der Nachmittag, -e", "afternoon", "dopahar ke baad", "🌤️", "Noun", "Gen: Masc. | Art: der | Pl: die Nachmittage", "Wir treffen uns am Nachmittag.|We meet in the afternoon.|Hum dopahar ke baad milte hain.|Ein ruhiger Nachmittag.|A quiet afternoon.|Ek shaant dopahar."),
+                c("nachts", "at night", "raat ko", "🌃", "Adverb", "-", "Nachts schlafe ich.|At night I sleep.|Raat ko main sota hu.|Er arbeitet nachts.|He works at night.|Woh raat ko kaam karta hai."),
+                c("der Moment, -e", "moment", "pal", "⏱️", "Noun", "Gen: Masc. | Art: der | Pl: die Momente", "Einen Moment, bitte.|One moment, please.|Ek pal, kripya.|Im Moment habe ich keine Zeit.|At the moment I have no time.|Is waqt mere paas samay nahi hai."),
+                c("die Stunde, -n", "hour", "ghanta", "⏳", "Noun", "Gen: Fem. | Art: die | Pl: die Stunden", "Der Film dauert zwei Stunden.|The movie lasts two hours.|Film do ghante chalti hai.|Ich warte eine Stunde.|I wait an hour.|Main ek ghanta intezaar karta hu."),
+                c("die Woche, -n", "week", "hafta", "📆", "Noun", "Gen: Fem. | Art: die | Pl: die Wochen", "Eine Woche hat sieben Tage.|A week has seven days.|Ek hafte mein saat din hote hain.|Nächste Woche.|Next week.|Agle hafte."),
+                c("das Wochenende, -n", "weekend", "weekend", "🎉", "Noun", "Gen: Neut. | Art: das | Pl: die Wochenenden", "Schönes Wochenende!|Have a nice weekend!|Aapka weekend achha ho!|Am Wochenende habe ich frei.|On the weekend I am free.|Weekend par meri chhutti hai."),
+                c("der Termin, -e", "appointment", "appointment", "🗓️", "Noun", "Gen: Masc. | Art: der | Pl: die Termine", "Ich habe einen Termin.|I have an appointment.|Mera ek appointment hai.|Wir brauchen einen Termin.|We need an appointment.|Humein ek appointment chahiye."),
+                c("das Jahr, -e", "year", "saal", "📅", "Noun", "Gen: Neut. | Art: das | Pl: die Jahre", "Ich bin 20 Jahre alt.|I am 20 years old.|Main 20 saal ka hu.|Nächstes Jahr.|Next year.|Agle saal.")
+            ]},
+            { title: "Places & Going Out", cards: [
+                c("das Café, -s", "café", "cafe", "☕", "Noun", "Gen: Neut. | Art: das | Pl: die Cafés", "Wir sitzen im Café.|We sit in the café.|Hum cafe mein baithe hain.|Der Kaffee im Café ist gut.|The coffee in the café is good.|Cafe ki coffee achhi hai."),
+                c("der Kursraum, \"-e", "course room", "class room", "🏫", "Noun", "Gen: Masc. | Art: der | Pl: die Kursräume", "Wir sind im Kursraum.|We are in the course room.|Hum class room mein hain.|Der Kursraum ist groß.|The course room is big.|Class room bada hai."),
+                c("das Museum, Museen", "museum", "sangrahalay", "🏛️", "Noun", "Gen: Neut. | Art: das | Pl: die Museen", "Wir gehen ins Museum.|We are going to the museum.|Hum museum ja rahe hain.|Das Museum ist interessant.|The museum is interesting.|Museum dilchasp hai."),
+                c("das Restaurant, -s", "restaurant", "restaurant", "🍽️", "Noun", "Gen: Neut. | Art: das | Pl: die Restaurants", "Wir essen im Restaurant.|We eat in the restaurant.|Hum restaurant mein khate hain.|Das Restaurant ist teuer.|The restaurant is expensive.|Restaurant mehenga hai."),
+                c("das Schwimmbad, \"-er", "swimming pool", "swimming pool", "🏊", "Noun", "Gen: Neut. | Art: das | Pl: die Schwimmbäder", "Ich gehe ins Schwimmbad.|I go to the swimming pool.|Main swimming pool jata hu.|Das Schwimmbad ist offen.|The swimming pool is open.|Swimming pool khula hai."),
+                c("das Stadion, Stadien", "stadium", "stadium", "🏟️", "Noun", "Gen: Neut. | Art: das | Pl: die Stadien", "Das Fußballspiel ist im Stadion.|The football game is in the stadium.|Football match stadium mein hai.|Das Stadion ist voll.|The stadium is full.|Stadium bhara hua hai."),
+                c("das Theater, -", "theater", "theatre / natakghar", "🎭", "Noun", "Gen: Neut. | Art: das | Pl: die Theater", "Wir gehen ins Theater.|We go to the theater.|Hum natakghar jate hain.|Das Theater ist alt.|The theater is old.|Natakghar purana hai."),
+                c("die Verabredung, -en", "date / appointment", "milne ka tay waqt", "🤝", "Noun", "Gen: Fem. | Art: die | Pl: die Verabredungen", "Ich habe eine Verabredung.|I have an appointment.|Mera milne ka tay waqt hai.|Wir haben eine Verabredung.|We have a date.|Humara milne ka tay waqt hai."),
+                c("das Kino, -s", "cinema", "cinema", "🍿", "Noun", "Gen: Neut. | Art: das | Pl: die Kinos", "Wir gehen ins Kino.|We go to the cinema.|Hum cinema jate hain.|Der Film im Kino ist toll.|The film in the cinema is great.|Cinema mein film badhiya hai.")
+            ]}
+        ];
+
+        const ch2_c = [
+            { title: "Work & Professions", cards: [
+                c("der Beruf, -e", "profession / job", "pesha", "💼", "Noun", "Gen: Masc. | Art: der | Pl: die Berufe", "Was sind Sie von Beruf?|What is your profession?|Aapka pesha kya hai?|Mein Beruf ist interessant.|My job is interesting.|Mera pesha dilchasp hai."),
+                c("der Arzt, \"-e", "doctor (male)", "doctor", "👨‍⚕️", "Noun", "Gen: Masc. | Art: der | Pl: die Ärzte", "Der Arzt hilft den Kranken.|The doctor helps the sick.|Doctor beemaron ki madad karta hai.|Er ist Arzt.|He is a doctor.|Woh doctor hai."),
+                c("die Ärztin, -nen", "doctor (female)", "doctor (mahila)", "👩‍⚕️", "Noun", "Gen: Fem. | Art: die | Pl: die Ärztinnen", "Sie ist Ärztin.|She is a doctor.|Woh doctor hai.|Die Ärztin ist im Krankenhaus.|The female doctor is in the hospital.|Doctor aspatal mein hai."),
+                c("der Kellner, -", "waiter", "waiter", "👨‍🍳", "Noun", "Gen: Masc. | Art: der | Pl: die Kellner", "Der Kellner bringt das Essen.|The waiter brings the food.|Waiter khana lata hai.|Er arbeitet als Kellner.|He works as a waiter.|Woh waiter ka kaam karta hai."),
+                c("die Kellnerin, -nen", "waitress", "waitress", "👩‍🍳", "Noun", "Gen: Fem. | Art: die | Pl: die Kellnerinnen", "Die Kellnerin ist freundlich.|The waitress is friendly.|Waitress milansaar hai.|Sie ist Kellnerin.|She is a waitress.|Woh waitress hai."),
+                c("der Taxifahrer, -", "taxi driver (male)", "taxi driver", "🚕", "Noun", "Gen: Masc. | Art: der | Pl: die Taxifahrer", "Der Taxifahrer fährt schnell.|The taxi driver drives fast.|Taxi driver tez chalata hai.|Er ist Taxifahrer.|He is a taxi driver.|Woh taxi driver hai."),
+                c("die Taxifahrerin, -nen", "taxi driver (female)", "taxi driver", "🚕", "Noun", "Gen: Fem. | Art: die | Pl: die Taxifahrerinnen", "Die Taxifahrerin kennt den Weg.|The female taxi driver knows the way.|Taxi driver raasta jaanti hai.|Sie ist Taxifahrerin.|She is a taxi driver.|Woh taxi driver hai."),
+                c("der Krankenpfleger, -", "nurse (male)", "nurse", "🧑‍⚕️", "Noun", "Gen: Masc. | Art: der | Pl: die Krankenpfleger", "Der Krankenpfleger hilft.|The nurse helps.|Nurse madad karta hai.|Er lernt Krankenpfleger.|He studies to be a nurse.|Woh nurse banne ki padhai kar raha hai."),
+                c("die Krankenpflegerin, -nen", "nurse (female)", "nurse", "👩‍⚕️", "Noun", "Gen: Fem. | Art: die | Pl: die Krankenpflegerinnen", "Die Krankenpflegerin ist da.|The nurse is there.|Nurse wahan hai.|Sie arbeitet als Krankenpflegerin.|She works as a nurse.|Woh nurse ka kaam karti hai."),
+                c("der Patient, -en", "patient (male)", "mareez", "🤒", "Noun", "Gen: Masc. | Art: der | Pl: die Patienten", "Der Patient wartet.|The patient is waiting.|Mareez intezaar kar raha hai.|Der Arzt untersucht den Patienten.|The doctor examines the patient.|Doctor mareez ki jaanch karta hai."),
+                c("die Patientin, -nen", "patient (female)", "mareez (mahila)", "🤒", "Noun", "Gen: Fem. | Art: die | Pl: die Patientinnen", "Die Patientin ist krank.|The female patient is sick.|Mareez beemar hai.|Wir helfen der Patientin.|We help the female patient.|Hum mareez ki madad karte hain."),
+                c("der Student, -en", "student (male)", "chhatra", "🎓", "Noun", "Gen: Masc. | Art: der | Pl: die Studenten", "Der Student lernt.|The student is studying.|Chhatra padh raha hai.|Er ist Student.|He is a student.|Woh chhatra hai."),
+                c("die Studentin, -nen", "student (female)", "chhatra (mahila)", "🎓", "Noun", "Gen: Fem. | Art: die | Pl: die Studentinnen", "Sie ist Studentin.|She is a student.|Woh chhatra hai.|Die Studentin liest.|The female student reads.|Chhatra padh rahi hai."),
+                c("der Architekt, -en", "architect (male)", "architect", "📐", "Noun", "Gen: Masc. | Art: der | Pl: die Architekten", "Der Architekt plant das Haus.|The architect plans the house.|Architect ghar plan karta hai.|Er ist Architekt.|He is an architect.|Woh architect hai."),
+                c("die Architektin, -nen", "architect (female)", "architect", "📐", "Noun", "Gen: Fem. | Art: die | Pl: die Architektinnen", "Die Architektin zeichnet.|The female architect draws.|Architect chitra banati hai.|Sie ist Architektin.|She is an architect.|Woh architect hai."),
+                c("der Friseur, -e", "hairdresser (male)", "nai", "✂️", "Noun", "Gen: Masc. | Art: der | Pl: die Friseure", "Der Friseur schneidet Haare.|The hairdresser cuts hair.|Nai baal kat-ta hai.|Ich gehe zum Friseur.|I go to the hairdresser.|Main nai ke paas jata hu."),
+                c("die Friseurin, -nen", "hairdresser (female)", "hairdresser", "✂️", "Noun", "Gen: Fem. | Art: die | Pl: die Friseurinnen", "Die Friseurin arbeitet.|The female hairdresser is working.|Hairdresser kaam karti hai.|Sie ist Friseurin.|She is a hairdresser.|Woh hairdresser hai."),
+                c("der Informatiker, -", "IT specialist (male)", "IT specialist", "💻", "Noun", "Gen: Masc. | Art: der | Pl: die Informatiker", "Der Informatiker programmiert.|The IT specialist programs.|IT specialist program banata hai.|Er ist Informatiker.|He is an IT specialist.|Woh IT specialist hai."),
+                c("die Informatikerin, -nen", "IT specialist (female)", "IT specialist", "💻", "Noun", "Gen: Fem. | Art: die | Pl: die Informatikerinnen", "Die Informatikerin hilft.|The female IT specialist helps.|IT specialist madad karti hai.|Sie ist Informatikerin.|She is an IT specialist.|Woh IT specialist hai."),
+                c("der Ingenieur, -e", "engineer (male)", "engineer", "🛠️", "Noun", "Gen: Masc. | Art: der | Pl: die Ingenieure", "Der Ingenieur arbeitet bei Siemens.|The engineer works at Siemens.|Engineer Siemens mein kaam karta hai.|Er ist Ingenieur.|He is an engineer.|Woh engineer hai."),
+                c("die Ingenieurin, -nen", "engineer (female)", "engineer", "🛠️", "Noun", "Gen: Fem. | Art: die | Pl: die Ingenieurinnen", "Die Ingenieurin ist sehr gut.|The female engineer is very good.|Engineer bahut achhi hai.|Sie ist Ingenieurin.|She is an engineer.|Woh engineer hai."),
+                c("der Lehrer, -", "teacher (male)", "teacher", "👨‍🏫", "Noun", "Gen: Masc. | Art: der | Pl: die Lehrer", "Der Lehrer erklärt.|The teacher explains.|Teacher samjhata hai.|Er ist mein Lehrer.|He is my teacher.|Woh mera teacher hai."),
+                c("die Lehrerin, -nen", "teacher (female)", "teacher (mahila)", "👩‍🏫", "Noun", "Gen: Fem. | Art: die | Pl: die Lehrerinnen", "Die Lehrerin fragt.|The female teacher asks.|Teacher poochhti hai.|Sie ist Lehrerin.|She is a teacher.|Woh teacher hai."),
+                c("der Verkäufer, -", "salesperson (male)", "dukandaar", "🛍️", "Noun", "Gen: Masc. | Art: der | Pl: die Verkäufer", "Der Verkäufer verkauft Schuhe.|The salesperson sells shoes.|Dukandaar joote bechta hai.|Er ist Verkäufer.|He is a salesperson.|Woh dukandaar hai."),
+                c("die Verkäuferin, -nen", "salesperson (female)", "saleswoman", "🛍️", "Noun", "Gen: Fem. | Art: die | Pl: die Verkäuferinnen", "Die Verkäuferin ist nett.|The saleswoman is nice.|Saleswoman achhi hai.|Sie arbeitet als Verkäuferin.|She works as a saleswoman.|Woh saleswoman ka kaam karti hai."),
+                c("der Elektriker, -", "electrician (male)", "electrician", "⚡", "Noun", "Gen: Masc. | Art: der | Pl: die Elektriker", "Der Elektriker repariert das Licht.|The electrician fixes the light.|Electrician light theek karta hai.|Er ist Elektriker.|He is an electrician.|Woh electrician hai."),
+                c("die Elektrikerin, -nen", "electrician (female)", "electrician", "⚡", "Noun", "Gen: Fem. | Art: die | Pl: die Elektrikerinnen", "Die Elektrikerin kommt heute.|The female electrician is coming today.|Electrician aaj aa rahi hai.|Sie ist Elektrikerin.|She is an electrician.|Woh electrician hai."),
+                c("der Erzieher, -", "educator (male)", "educator", "🧸", "Noun", "Gen: Masc. | Art: der | Pl: die Erzieher", "Der Erzieher arbeitet im Kindergarten.|The educator works in the kindergarten.|Educator kindergarten mein kaam karta hai.|Er ist Erzieher.|He is an educator.|Woh educator hai."),
+                c("die Erzieherin, -nen", "educator (female)", "educator", "🧸", "Noun", "Gen: Fem. | Art: die | Pl: die Erzieherinnen", "Die Erzieherin spielt mit den Kindern.|The female educator plays with the children.|Educator bachhon ke saath khelti hai.|Sie ist Erzieherin.|She is an educator.|Woh educator hai."),
+                c("der Handwerker, -", "craftsman", "karigar", "🔨", "Noun", "Gen: Masc. | Art: der | Pl: die Handwerker", "Der Handwerker baut.|The craftsman builds.|Karigar banata hai.|Er ist Handwerker.|He is a craftsman.|Woh karigar hai."),
+                c("die Handwerkerin, -nen", "craftswoman", "karigar", "🔨", "Noun", "Gen: Fem. | Art: die | Pl: die Handwerkerinnen", "Die Handwerkerin arbeitet hart.|The craftswoman works hard.|Karigar mehnat karti hai.|Sie ist Handwerkerin.|She is a craftswoman.|Woh karigar hai."),
+                c("der Journalist, -en", "journalist (male)", "patrakar", "📰", "Noun", "Gen: Masc. | Art: der | Pl: die Journalisten", "Der Journalist schreibt.|The journalist writes.|Patrakar likhta hai.|Er ist Journalist.|He is a journalist.|Woh patrakar hai."),
+                c("die Journalistin, -nen", "journalist (female)", "patrakar", "📰", "Noun", "Gen: Fem. | Art: die | Pl: die Journalistinnen", "Die Journalistin fragt.|The female journalist asks.|Patrakar poochhti hai.|Sie ist Journalistin.|She is a journalist.|Woh patrakar hai."),
+                c("der Jurist, -en", "lawyer (male)", "vakeel", "⚖️", "Noun", "Gen: Masc. | Art: der | Pl: die Juristen", "Der Jurist hilft.|The lawyer helps.|Vakeel madad karta hai.|Er ist Jurist.|He is a lawyer.|Woh vakeel hai."),
+                c("die Juristin, -nen", "lawyer (female)", "vakeel", "⚖️", "Noun", "Gen: Fem. | Art: die | Pl: die Juristinnen", "Die Juristin liest das Buch.|The female lawyer reads the book.|Vakeel kitaab padhti hai.|Sie ist Juristin.|She is a lawyer.|Woh vakeel hai."),
+                c("der Koch, \"-e", "cook / chef (male)", "bawarchi", "👨‍🍳", "Noun", "Gen: Masc. | Art: der | Pl: die Köche", "Der Koch kocht gut.|The cook cooks well.|Bawarchi achha khana banata hai.|Er ist Koch.|He is a cook.|Woh bawarchi hai."),
+                c("die Köchin, -nen", "cook / chef (female)", "bawarchi", "👩‍🍳", "Noun", "Gen: Fem. | Art: die | Pl: die Köchinnen", "Die Köchin macht Spaghetti.|The female cook makes spaghetti.|Bawarchi spaghetti banati hai.|Sie ist Köchin.|She is a cook.|Woh bawarchi hai."),
+                c("der Mechaniker, -", "mechanic (male)", "mechanic", "🔧", "Noun", "Gen: Masc. | Art: der | Pl: die Mechaniker", "Der Mechaniker repariert das Auto.|The mechanic fixes the car.|Mechanic gadi theek karta hai.|Er ist Mechaniker.|He is a mechanic.|Woh mechanic hai."),
+                c("die Mechanikerin, -nen", "mechanic (female)", "mechanic", "🔧", "Noun", "Gen: Fem. | Art: die | Pl: die Mechanikerinnen", "Die Mechanikerin arbeitet hier.|The female mechanic works here.|Mechanic yahan kaam karti hai.|Sie ist Mechanikerin.|She is a mechanic.|Woh mechanic hai."),
+                c("der Polizist, -en", "police officer (male)", "police wala", "👮", "Noun", "Gen: Masc. | Art: der | Pl: die Polizisten", "Der Polizist kommt.|The police officer is coming.|Police wala aa raha hai.|Er ist Polizist.|He is a police officer.|Woh police wala hai."),
+                c("die Polizistin, -nen", "police officer (female)", "police wali", "👮", "Noun", "Gen: Fem. | Art: die | Pl: die Polizistinnen", "Die Polizistin hilft.|The female police officer helps.|Police wali madad karti hai.|Sie ist Polizistin.|She is a police officer.|Woh police wali hai.")
+            ]},
+            { title: "Building & Study Items", cards: [
+                c("das Krankenhaus, \"-er", "hospital", "aspatal", "🏥", "Noun", "Gen: Neut. | Art: das | Pl: die Krankenhäuser", "Das Krankenhaus ist groß.|The hospital is big.|Aspatal bada hai.|Ich fahre ins Krankenhaus.|I drive to the hospital.|Main aspatal jata hu."),
+                c("der Platz, \"-e", "place / square", "jagah / square", "🔲", "Noun", "Gen: Masc. | Art: der | Pl: die Plätze", "Der Platz ist schön.|The place is beautiful.|Jagah sundar hai.|Wir treffen uns am Platz.|We meet at the square.|Hum square par milte hain."),
+                c("das Seminar, -e", "seminar", "seminar", "🏫", "Noun", "Gen: Neut. | Art: das | Pl: die Seminare", "Das Seminar ist interessant.|The seminar is interesting.|Seminar dilchasp hai.|Ich habe ein Seminar.|I have a seminar.|Mera ek seminar hai."),
+                c("die Universität, -en", "university", "university", "🎓", "Noun", "Gen: Fem. | Art: die | Pl: die Universitäten", "Die Universität ist alt.|The university is old.|University purani hai.|Er studiert an der Universität.|He studies at the university.|Woh university mein padhta hai."),
+                c("das Zimmer, -", "room", "kamra", "🚪", "Noun", "Gen: Neut. | Art: das | Pl: die Zimmer", "Das Zimmer ist klein.|The room is small.|Kamra chhota hai.|Mein Zimmer hat ein Fenster.|My room has a window.|Mere kamre mein ek khidki hai."),
+                c("der Kilometer, -", "kilometer", "kilometer", "📏", "Noun", "Gen: Masc. | Art: der | Pl: die Kilometer", "Zehn Kilometer.|Ten kilometers.|Dus kilometer.|Ein Kilometer ist nicht weit.|A kilometer is not far.|Ek kilometer door nahi hai."),
+                c("das Geld, -er", "money", "paisa", "💶", "Noun", "Gen: Neut. | Art: das | Pl: die Gelder", "Ich habe kein Geld.|I have no money.|Mere paas paise nahi hain.|Geld ist wichtig.|Money is important.|Paisa zaroori hai."),
+                c("die Rechnung, -en", "bill", "bill", "🧾", "Noun", "Gen: Fem. | Art: die | Pl: die Rechnungen", "Die Rechnung, bitte.|The bill, please.|Bill, kripya.|Ich bezahle die Rechnung.|I pay the bill.|Main bill chukata hu."),
+                c("das Medikament, -e", "medicine", "dawai", "💊", "Noun", "Gen: Neut. | Art: das | Pl: die Medikamente", "Ich nehme das Medikament.|I take the medicine.|Main dawai leta hu.|Das Medikament hilft.|The medicine helps.|Dawai madad karti hai."),
+                c("die Spritze, -n", "injection / syringe", "injection", "💉", "Noun", "Gen: Fem. | Art: die | Pl: die Spritzen", "Der Arzt gibt eine Spritze.|The doctor gives an injection.|Doctor injection deta hai.|Die Spritze tut weh.|The injection hurts.|Injection mein dard hota hai."),
+                c("die Tablette, -n", "tablet / pill", "goli", "💊", "Noun", "Gen: Fem. | Art: die | Pl: die Tabletten", "Ich nehme eine Tablette.|I take a pill.|Main ek goli leta hu.|Die Tablette ist klein.|The pill is small.|Goli chhoti hai."),
+                c("der Schlüssel, -", "key", "chabi", "🔑", "Noun", "Gen: Masc. | Art: der | Pl: die Schlüssel", "Hier ist der Schlüssel.|Here is the key.|Yeh rahi chabi.|Ich suche meinen Schlüssel.|I am looking for my key.|Main apni chabi dhoondh raha hu."),
+                c("das Auto, -s", "car", "gadi", "🚗", "Noun", "Gen: Neut. | Art: das | Pl: die Autos", "Das Auto ist rot.|The car is red.|Gadi laal hai.|Wir fahren mit dem Auto.|We travel by car.|Hum gadi se safar karte hain."),
+                c("der Computer, -", "computer", "computer", "💻", "Noun", "Gen: Masc. | Art: der | Pl: die Computer", "Der Computer ist neu.|The computer is new.|Computer naya hai.|Ich arbeite am Computer.|I work on the computer.|Main computer par kaam karta hu."),
+                c("das Glas, \"-er", "glass", "glass", "🥃", "Noun", "Gen: Neut. | Art: das | Pl: die Gläser", "Ein Glas Wasser, bitte.|A glass of water, please.|Ek glass paani, kripya.|Das Glas ist leer.|The glass is empty.|Glass khali hai."),
+                c("der Stift, -e", "pen / pencil", "pen", "✏️", "Noun", "Gen: Masc. | Art: der | Pl: die Stifte", "Hast du einen Stift?|Do you have a pen?|Kya tumhare paas pen hai?|Der Stift ist blau.|The pen is blue.|Pen neela hai."),
+                c("die Straße, -n", "street", "sadak", "🛣️", "Noun", "Gen: Fem. | Art: die | Pl: die Straßen", "Die Straße ist lang.|The street is long.|Sadak lambi hai.|Wir wohnen in dieser Straße.|We live on this street.|Hum is sadak par rehte hain."),
+                c("die Information, -en", "information", "jankari", "ℹ️", "Noun", "Gen: Fem. | Art: die | Pl: die Informationen", "Ich brauche Informationen.|I need information.|Mujhe jankari chahiye.|Danke für die Information.|Thanks for the information.|Jankari ke liye shukriya.")
+            ]},
+            { title: "Grammar, Colors & Info", cards: [
+                c("die Endung, -en", "ending", "ending", "🔚", "Noun", "Gen: Fem. | Art: die | Pl: die Endungen", "Die Endung ist wichtig.|The ending is important.|Ending zaroori hai.|Achten Sie auf die Endung.|Pay attention to the ending.|Ending par dhyaan dein."),
+                c("die Form, -en", "form", "form", "📝", "Noun", "Gen: Fem. | Art: die | Pl: die Formen", "Die richtige Form.|The correct form.|Sahi form.|Schreiben Sie die Form.|Write the form.|Form likhein."),
+                c("der Infinitiv, -e", "infinitive", "infinitive", "⚡", "Noun", "Gen: Masc. | Art: der | Pl: die Infinitive", "Was ist der Infinitiv?|What is the infinitive?|Infinitive kya hai?|Der Infinitiv steht am Ende.|The infinitive is at the end.|Infinitive aakhir mein aata hai."),
+                c("die Satzmelodie, -n", "intonation", "intonation", "🎵", "Noun", "Gen: Fem. | Art: die | Pl: die Satzmelodien", "Achten Sie auf die Satzmelodie.|Pay attention to the intonation.|Intonation par dhyaan dein.|Die Satzmelodie geht nach oben.|The intonation goes up.|Intonation upar jati hai."),
+                c("die Ja-/Nein-Frage, -n", "yes-/no-question", "haan-/na-sawal", "❓", "Noun", "Gen: Fem. | Art: die | Pl: die Ja-/Nein-Fragen", "Das ist eine Ja-/Nein-Frage.|That is a yes-/no-question.|Yeh ek haan-/na-sawal hai.|Bilden Sie Ja-/Nein-Fragen.|Form yes-/no-questions.|Haan-/na-sawal banayein."),
+                c("der Artikel, -", "article", "article", "🅰️", "Noun", "Gen: Masc. | Art: der | Pl: die Artikel", "Lernen Sie den Artikel.|Learn the article.|Article seekhein.|Der Artikel ist wichtig.|The article is important.|Article zaroori hai."),
+                c("der bestimmte Artikel, -", "definite article", "nishchit article", "🅱️", "Noun Phrase", "-", "Der, die, das sind bestimmte Artikel.|Der, die, das are definite articles.|Der, die, das nishchit article hain.|Ich lerne bestimmte Artikel.|I am learning definite articles.|Main nishchit article seekh raha hu."),
+                c("maskulin", "masculine", "pulling", "♂️", "Adjective", "-", "Das Wort ist maskulin.|The word is masculine.|Shabd pulling hai.|Der maskuline Artikel ist 'der'.|The masculine article is 'der'.|Pulling article 'der' hai."),
+                c("feminin", "feminine", "striling", "♀️", "Adjective", "-", "Das Wort ist feminin.|The word is feminine.|Shabd striling hai.|Der feminine Artikel ist 'die'.|The feminine article is 'die'.|Striling article 'die' hai."),
+                c("neutrum", "neuter", "napunsakling", "⚲", "Adjective", "-", "Das Wort ist neutrum.|The word is neuter.|Shabd napunsakling hai.|Der neutrale Artikel ist 'das'.|The neuter article is 'das'.|Napunsakling article 'das' hai."),
+                c("das Nomen, -", "noun", "sangya", "🔤", "Noun", "Gen: Neut. | Art: das | Pl: die Nomen", "Das Nomen wird groß geschrieben.|The noun is capitalized.|Sangya capital mein likhi jati hai.|Unterstreichen Sie das Nomen.|Underline the noun.|Sangya ko underline karein."),
+                c("der Plural, -e", "plural", "bahuvachan", "👥", "Noun", "Gen: Masc. | Art: der | Pl: die Plurale", "Wie ist der Plural?|What is the plural?|Bahuvachan kya hai?|Lernen Sie den Plural mit.|Learn the plural as well.|Bahuvachan bhi seekhein."),
+                c("der Singular, -e", "singular", "ekvachan", "👤", "Noun", "Gen: Masc. | Art: der | Pl: die Singulare", "Das Wort ist im Singular.|The word is in singular.|Shabd ekvachan mein hai.|Wie ist der Singular?|What is the singular?|Ekvachan kya hai?"),
+                c("die Pluralform, -en", "plural form", "bahuvachan roop", "👥", "Noun", "Gen: Fem. | Art: die | Pl: die Pluralformen", "Das ist die Pluralform.|That is the plural form.|Yeh bahuvachan roop hai.|Die Pluralform ist anders.|The plural form is different.|Bahuvachan roop alag hai."),
+                c("die Pluralendung, -en", "plural ending", "bahuvachan ending", "🔚", "Noun", "Gen: Fem. | Art: die | Pl: die Pluralendungen", "Was ist die Pluralendung?|What is the plural ending?|Bahuvachan ending kya hai?|Achten Sie auf die Pluralendung.|Pay attention to the plural ending.|Bahuvachan ending par dhyaan dein."),
+                c("die Lernkarte, -n", "flashcard", "flashcard", "🃏", "Noun", "Gen: Fem. | Art: die | Pl: die Lernkarten", "Wir machen Lernkarten.|We make flashcards.|Hum flashcards banate hain.|Die Lernkarte hilft.|The flashcard helps.|Flashcard madad karti hai."),
+                c("das Wörterbuch, \"-er", "dictionary", "dictionary", "📕", "Noun", "Gen: Neut. | Art: das | Pl: die Wörterbücher", "Ich suche im Wörterbuch.|I search in the dictionary.|Main dictionary mein dhoondhta hu.|Das Wörterbuch ist dick.|The dictionary is thick.|Dictionary moti hai."),
+                c("das Artikelbild, -er", "article picture", "article picture", "🖼️", "Noun", "Gen: Neut. | Art: das | Pl: die Artikelbilder", "Zeichnen Sie ein Artikelbild.|Draw an article picture.|Ek article picture banayein.|Das Artikelbild hilft.|The article picture helps.|Article picture madad karti hai."),
+                c("die Farbe, -n", "color", "rang", "🎨", "Noun", "Gen: Fem. | Art: die | Pl: die Farben", "Welche Farbe hat das?|What color is that?|Iska rang kya hai?|Meine Lieblingsfarbe ist Blau.|My favorite color is blue.|Mera pasandeeda rang neela hai."),
+                c("die Zeichnung, -en", "drawing", "chitra", "🖍️", "Noun", "Gen: Fem. | Art: die | Pl: die Zeichnungen", "Das ist eine schöne Zeichnung.|That is a beautiful drawing.|Yeh ek sundar chitra hai.|Er macht eine Zeichnung.|He makes a drawing.|Woh ek chitra banata hai."),
+                c("blau", "blue", "neela", "🔵", "Adjective", "-", "Der Himmel ist blau.|The sky is blue.|Aasman neela hai.|Das Auto ist blau.|The car is blue.|Gadi neeli hai."),
+                c("grün", "green", "hara", "🟢", "Adjective", "-", "Das Gras ist grün.|The grass is green.|Ghas hari hai.|Die Flasche ist grün.|The bottle is green.|Botal hari hai."),
+                c("rot", "red", "laal", "🔴", "Adjective", "-", "Die Tomate ist rot.|The tomato is red.|Tamatar laal hai.|Das Buch ist rot.|The book is red.|Kitaab laal hai."),
+                c("die Adresse, -n", "address", "pata", "📍", "Noun", "Gen: Fem. | Art: die | Pl: die Adressen", "Wie ist Ihre Adresse?|What is your address?|Aapka pata kya hai?|Hier ist meine Adresse.|Here is my address.|Yeh mera pata hai."),
+                c("die Angabe, -n", "detail / information", "jankari", "📝", "Noun", "Gen: Fem. | Art: die | Pl: die Angaben", "Ihre persönlichen Angaben, bitte.|Your personal details, please.|Aapki vyaktigat jankari, kripya.|Füllen Sie die Angaben aus.|Fill in the details.|Jankari bharein."),
+                c("der Club, -s", "club", "club", "🪩", "Noun", "Gen: Masc. | Art: der | Pl: die Clubs", "Wir gehen in den Club.|We go to the club.|Hum club jate hain.|Der Club ist voll.|The club is full.|Club bhara hua hai."),
+                c("der Familienname, -n", "family name / surname", "surname", "👥", "Noun", "Gen: Masc. | Art: der | Pl: die Familiennamen", "Wie ist Ihr Familienname?|What is your family name?|Aapka surname kya hai?|Mein Familienname ist Meier.|My family name is Meier.|Mera surname Meier hai."),
+                c("das Geburtsdatum, -daten", "date of birth", "janam tareekh", "🎂", "Noun", "Gen: Neut. | Art: das | Pl: die Geburtsdaten", "Ihr Geburtsdatum, bitte.|Your date of birth, please.|Aapki janam tareekh, kripya.|Ich notiere das Geburtsdatum.|I note down the date of birth.|Main janam tareekh likhta hu."),
+                c("der Geburtsort, -e", "place of birth", "janam sthan", "🏥", "Noun", "Gen: Masc. | Art: der | Pl: die Geburtsorte", "Wie heißt Ihr Geburtsort?|What is your place of birth?|Aapka janam sthan kya hai?|Mein Geburtsort ist Berlin.|My place of birth is Berlin.|Mera janam sthan Berlin hai."),
+                c("die E-Mail, -s", "email", "email", "📧", "Noun", "Gen: Fem. | Art: die | Pl: die E-Mails", "Ich schreibe eine E-Mail.|I write an email.|Main ek email likhta hu.|Die E-Mail ist lang.|The email is long.|Email lamba hai."),
+                c("die Hausnummer, -n", "house number", "ghar ka number", "🔢", "Noun", "Gen: Fem. | Art: die | Pl: die Hausnummern", "Meine Hausnummer ist 5.|My house number is 5.|Mere ghar ka number 5 hai.|Wie ist Ihre Hausnummer?|What is your house number?|Aapke ghar ka number kya hai?"),
+                c("die Postleitzahl, -en", "zip code / postcode", "pin code", "📮", "Noun", "Gen: Fem. | Art: die | Pl: die Postleitzahlen", "Die Postleitzahl von Berlin ist...|The zip code of Berlin is...|Berlin ka pin code hai...|Bitte geben Sie Ihre Postleitzahl an.|Please provide your zip code.|Kripya apna pin code batayein."),
+                c("die Schule, -n", "school", "school", "🏫", "Noun", "Gen: Fem. | Art: die | Pl: die Schulen", "Die Kinder gehen in die Schule.|The children go to school.|Bachhe school jate hain.|Die Schule ist groß.|The school is big.|School bada hai."),
+                c("der Sportclub, -s", "sports club", "sports club", "🏟️", "Noun", "Gen: Masc. | Art: der | Pl: die Sportclubs", "Er ist im Sportclub.|He is in the sports club.|Woh sports club mein hai.|Wir gehen in den Sportclub.|We go to the sports club.|Hum sports club jate hain."),
+                c("der Wohnort, -e", "place of residence", "rehne ki jagah", "🏠", "Noun", "Gen: Masc. | Art: der | Pl: die Wohnorte", "Was ist Ihr Wohnort?|What is your place of residence?|Aapke rehne ki jagah kya hai?|Mein Wohnort ist Frankfurt.|My place of residence is Frankfurt.|Mere rehne ki jagah Frankfurt hai.")
+            ]},
+            { title: "Sports & Numbers", cards: [
+                c("Basketball", "basketball", "basketball", "🏀", "Noun", "Gen: Masc. | Art: der (often without)", "Ich spiele Basketball.|I play basketball.|Main basketball khelta hu.|Basketball ist toll.|Basketball is great.|Basketball badhiya hai."),
+                c("Karate", "karate", "karate", "🥋", "Noun", "Gen: Neut. | Art: das (often without)", "Er lernt Karate.|He learns karate.|Woh karate seekhta hai.|Karate ist anstrengend.|Karate is exhausting.|Karate thakane wala hai."),
+                c("Tennis", "tennis", "tennis", "🎾", "Noun", "Gen: Neut. | Art: das (often without)", "Spielen Sie Tennis?|Do you play tennis?|Kya aap tennis khelte hain?|Tennis macht Spaß.|Tennis is fun.|Tennis khelne mein mazaa aata hai."),
+                c("Yoga", "yoga", "yoga", "🧘", "Noun", "Gen: Neut. | Art: das (often without)", "Sie macht Yoga.|She does yoga.|Woh yoga karti hai.|Yoga ist entspannend.|Yoga is relaxing.|Yoga aaramdayak hai."),
+                c("Zumba", "zumba", "zumba", "💃", "Noun", "Gen: Neut. | Art: das (often without)", "Wir tanzen Zumba.|We dance Zumba.|Hum Zumba naachte hain.|Zumba ist schnell.|Zumba is fast.|Zumba tez hai."),
+                c("einundzwanzig", "twenty-one", "ikkees", "2️⃣1️⃣", "Numeral", "Number", "Er ist einundzwanzig Jahre alt.|He is twenty-one years old.|Woh ikkees saal ka hai.|Seite einundzwanzig.|Page twenty-one.|Page ikkees."),
+                c("zweiundzwanzig", "twenty-two", "baees", "2️⃣2️⃣", "Numeral", "Number", "Zweiundzwanzig Studenten.|Twenty-two students.|Baees chhatra.|Ich bin zweiundzwanzig.|I am twenty-two.|Main baees saal ka hu."),
+                c("dreiundzwanzig", "twenty-three", "teees", "2️⃣3️⃣", "Numeral", "Number", "Dreiundzwanzig Euro.|Twenty-three euros.|Teees euro.|Hausnummer dreiundzwanzig.|House number twenty-three.|Ghar ka number teees."),
+                c("vierundzwanzig", "twenty-four", "chaubees", "2️⃣4️⃣", "Numeral", "Number", "Ein Tag hat vierundzwanzig Stunden.|A day has twenty-four hours.|Ek din mein chaubees ghante hote hain.|Vierundzwanzig Personen.|Twenty-four people.|Chaubees log."),
+                c("fünfundzwanzig", "twenty-five", "pachees", "2️⃣5️⃣", "Numeral", "Number", "Sie ist fünfundzwanzig.|She is twenty-five.|Woh pachees saal ki hai.|Fünfundzwanzig Fragen.|Twenty-five questions.|Pachees sawal."),
+                c("sechsundzwanzig", "twenty-six", "chhabees", "2️⃣6️⃣", "Numeral", "Number", "Das Alphabet hat sechsundzwanzig Buchstaben.|The alphabet has twenty-six letters.|Varnamala mein chhabees akshar hain.|Sechsundzwanzig Autos.|Twenty-six cars.|Chhabees gadiyan."),
+                c("siebenundzwanzig", "twenty-seven", "sattaees", "2️⃣7️⃣", "Numeral", "Number", "Siebenundzwanzig Kilometer.|Twenty-seven kilometers.|Sattaees kilometer.|Er kauft siebenundzwanzig Bücher.|He buys twenty-seven books.|Woh sattaees kitaabein kharidta hai."),
+                c("achtundzwanzig", "twenty-eight", "atthaees", "2️⃣8️⃣", "Numeral", "Number", "Achtundzwanzig Tage im Februar.|Twenty-eight days in February.|February mein atthaees din.|Das kostet achtundzwanzig Euro.|That costs twenty-eight euros.|Iska daam atthaees euro hai."),
+                c("neunundzwanzig", "twenty-nine", "untees", "2️⃣9️⃣", "Numeral", "Number", "Neunundzwanzig Gäste.|Twenty-nine guests.|Untees mehmaan.|Wir sind neunundzwanzig Leute.|We are twenty-nine people.|Hum untees log hain."),
+                c("dreißig", "thirty", "tees", "3️⃣0️⃣", "Numeral", "Number", "Dreißig Minuten.|Thirty minutes.|Tees minute.|Er ist dreißig.|He is thirty.|Woh tees saal ka hai."),
+                c("vierzig", "forty", "chalees", "4️⃣0️⃣", "Numeral", "Number", "Vierzig Euro, bitte.|Forty euros, please.|Chalees euro, kripya.|Vierzig Jahre alt.|Forty years old.|Chalees saal ki umra."),
+                c("fünfzig", "fifty", "pachaas", "5️⃣0️⃣", "Numeral", "Number", "Das Buch hat fünfzig Seiten.|The book has fifty pages.|Kitaab mein pachaas panne hain.|Fünfzig Prozent.|Fifty percent.|Pachaas pratishat."),
+                c("sechzig", "sixty", "saath", "6️⃣0️⃣", "Numeral", "Number", "Eine Stunde hat sechzig Minuten.|An hour has sixty minutes.|Ek ghante mein saath minute hote hain.|Sechzig Sekunden.|Sixty seconds.|Saath second."),
+                c("siebzig", "seventy", "sattar", "7️⃣0️⃣", "Numeral", "Number", "Siebzig Personen.|Seventy people.|Sattar log.|Er fährt siebzig.|He drives seventy.|Woh sattar ki speed se chalata hai."),
+                c("achtzig", "eighty", "assi", "8️⃣0️⃣", "Numeral", "Number", "Achtzig Euro.|Eighty euros.|Assi euro.|Meine Oma ist achtzig.|My grandma is eighty.|Meri dadi assi saal ki hain."),
+                c("neunzig", "ninety", "nabbe", "9️⃣0️⃣", "Numeral", "Number", "Neunzig Tage.|Ninety days.|Nabbe din.|Fast neunzig.|Almost ninety.|Lagbhag nabbe."),
+                c("einhundert", "one hundred", "ek sau", "💯", "Numeral", "Number", "Einhundert Euro.|One hundred euros.|Ek sau euro.|Einhundert Prozent.|One hundred percent.|Ek sau pratishat."),
+                c("hundert", "hundred", "sau", "💯", "Numeral", "Number", "Es kostet hundert Euro.|It costs a hundred euros.|Iska daam sau euro hai.|Hundert Leute.|A hundred people.|Sau log."),
+                c("zweihundert", "two hundred", "do sau", "2️⃣0️⃣0️⃣", "Numeral", "Number", "Zweihundert Kilometer.|Two hundred kilometers.|Do sau kilometer.|Zweihundert Gäste.|Two hundred guests.|Do sau mehmaan."),
+                c("tausend", "thousand", "hazaar", "1️⃣0️⃣0️⃣0️⃣", "Numeral", "Number", "Tausend Dank!|A thousand thanks!|Hazaar shukriya!|Tausend Leute.|A thousand people.|Hazaar log."),
+                c("eintausend", "one thousand", "ek hazaar", "1️⃣0️⃣0️⃣0️⃣", "Numeral", "Number", "Eintausend Euro.|One thousand euros.|Ek hazaar euro.|Eintausend Wörter.|One thousand words.|Ek hazaar shabd."),
+                c("die Million, -en", "million", "das lakh", "💰", "Noun", "Gen: Fem. | Art: die | Pl: die Millionen", "Eine Million Euro.|One million euros.|Das lakh euro.|Zwei Millionen Menschen.|Two million people.|Bees lakh log."),
+                c("die Milliarde, -n", "billion", "arab", "🌍", "Noun", "Gen: Fem. | Art: die | Pl: die Milliarden", "Eine Milliarde Menschen.|One billion people.|Ek arab log.|Milliarden Sterne.|Billions of stars.|Arabo sitare.")
+            ]},
+            { title: "Expressions & Instructions", cards: [
+                c("ab", "from", "se", "⏰", "Preposition", "Dative", "Ab Montag arbeite ich.|From Monday I work.|Somvaar se main kaam karta hu.|Ab acht Uhr.|From eight o'clock.|Aath baje se."),
+                c("alle", "all / everyone", "sab / sabhi", "👥", "Pronoun", "-", "Alle sind da.|Everyone is here.|Sabhi yahan hain.|Alle Kinder spielen.|All children play.|Sabhi bachhe khel rahe hain."),
+                c("von ... bis", "from ... to", "se ... tak", "⏳", "Phrase", "Prepositions", "Ich arbeite von Montag bis Freitag.|I work from Monday to Friday.|Main somvaar se shukrawaar tak kaam karta hu.|Von 8 bis 17 Uhr.|From 8 to 5 o'clock.|8 se 17 baje tak."),
+                c("die Notiz, -en", "note", "note", "📝", "Noun", "Gen: Fem. | Art: die | Pl: die Notizen", "Ich mache eine Notiz.|I make a note.|Main ek note likhta hu.|Die Notizen sind wichtig.|The notes are important.|Notes zaroori hain."),
+                c("gegenseitig", "mutual / each other", "aapas mein", "🤝", "Adverb / Adjective", "-", "Wir helfen uns gegenseitig.|We help each other.|Hum aapas mein madad karte hain.|Stellen Sie sich gegenseitig vor.|Introduce each other.|Aapas mein parichay dein."),
+                c("immer", "always", "hamesha", "♾️", "Adverb", "-", "Er kommt immer zu spät.|He always comes too late.|Woh hamesha der se aata hai.|Ich trinke immer Kaffee.|I always drink coffee.|Main hamesha coffee peeta hu."),
+                c("was sind Sie von Beruf?", "what is your profession?", "aapka pesha kya hai?", "💼", "Phrase", "Question", "Was sind Sie von Beruf?|What is your profession?|Aapka pesha kya hai?|Was bist du von Beruf?|What is your job?|Tumhara pesha kya hai?"),
+                c("wann arbeiten Sie?", "when do you work?", "aap kab kaam karte hain?", "⏰", "Phrase", "Question", "Wann arbeiten Sie?|When do you work?|Aap kab kaam karte hain?|Wann arbeitest du?|When do you work?|Tum kab kaam karte ho?"),
+                c("wann hast du frei?", "when do you have time off?", "tumhari chhutti kab hai?", "🏖️", "Phrase", "Question", "Wann hast du frei?|When do you have time off?|Tumhari chhutti kab hai?|Wann haben Sie frei?|When do you have time off?|Aapki chhutti kab hai?"),
+                c("ich habe am ... frei", "I have ... off", "meri ... ko chhutti hai", "🗓️", "Phrase", "-", "Ich habe am Montag frei.|I have Monday off.|Meri somvaar ko chhutti hai.|Ich habe am Wochenende frei.|I have the weekend off.|Meri weekend par chhutti hai."),
+                c("ich arbeite am ... nicht", "I don't work on ...", "main ... ko kaam nahi karta", "🛑", "Phrase", "-", "Ich arbeite am Sonntag nicht.|I don't work on Sunday.|Main raviwaar ko kaam nahi karta.|Ich arbeite am Wochenende nicht.|I don't work on the weekend.|Main weekend par kaam nahi karta."),
+                c("ich arbeite von ... bis ... Uhr", "I work from ... to ... o'clock", "main ... baje se ... baje tak kaam karta hu", "🕰️", "Phrase", "-", "Ich arbeite von 8 bis 17 Uhr.|I work from 8 to 5 o'clock.|Main 8 baje se 17 baje tak kaam karta hu.|Von 9 bis 12 Uhr.|From 9 to 12 o'clock.|9 se 12 baje tak."),
+                c("was machst du gern?", "what do you like to do?", "tumhein kya karna pasand hai?", "❤️", "Phrase", "Question", "Was machst du gern?|What do you like to do?|Tumhein kya karna pasand hai?|Was machen Sie gern?|What do you like to do?|Aapko kya karna pasand hai?"),
+                c("hörst du gern Musik?", "do you like listening to music?", "kya tumhein gaane sunna pasand hai?", "🎵", "Phrase", "Question", "Hörst du gern Musik?|Do you like listening to music?|Kya tumhein gaane sunna pasand hai?|Ja, sehr gern.|Yes, very much.|Haan, bahut."),
+                c("liest du gern?", "do you like reading?", "kya tumhein padhna pasand hai?", "📖", "Phrase", "Question", "Liest du gern?|Do you like reading?|Kya tumhein padhna pasand hai?|Ja, ich lese gern.|Yes, I like reading.|Haan, mujhe padhna pasand hai."),
+                c("gehst du gern ins Kino?", "do you like going to the cinema?", "kya tumhein cinema jana pasand hai?", "🍿", "Phrase", "Question", "Gehst du gern ins Kino?|Do you like going to the cinema?|Kya tumhein cinema jana pasand hai?|Gehen wir ins Kino?|Are we going to the cinema?|Kya hum cinema chalein?"),
+                c("wann gehen wir ins Kino?", "when are we going to the cinema?", "hum cinema kab ja rahe hain?", "⏰", "Phrase", "Question", "Wann gehen wir ins Kino?|When are we going to the cinema?|Hum cinema kab ja rahe hain?|Am Freitag?|On Friday?|Shukrawaar ko?"),
+                c("das geht leider nicht", "that unfortunately doesn't work", "afsos yeh nahi ho sakta", "😞", "Phrase", "-", "Das geht leider nicht.|That unfortunately doesn't work.|Afsos yeh nahi ho sakta.|Nein, das geht nicht.|No, that doesn't work.|Nahi, yeh nahi ho sakta."),
+                c("ja, sehr gern", "yes, very gladly", "haan, bahut shauk se", "🤩", "Phrase", "-", "Ja, sehr gern!|Yes, very gladly!|Haan, bahut shauk se!|Ja, gern.|Yes, gladly.|Haan, khushi se."),
+                c("es geht so", "it's so-so / it's alright", "theek-thaak hai", "🤷", "Phrase", "-", "Wie geht's? Es geht so.|How are you? It's so-so.|Kaise ho? Theek-thaak hai.|Singst du gern? Es geht so.|Do you like to sing? It's alright.|Kya tum gaate ho? Theek-thaak."),
+                c("lösen", "to solve", "hal karna", "🧩", "Verb", "Type: Reg. | Insep. | Aux: haben", "Lösen Sie die Aufgabe.|Solve the task.|Task hal karein.|Ich löse das Problem.|I solve the problem.|Main samasya hal karta hu."),
+                c("korrigieren", "to correct", "sahi karna", "✏️", "Verb", vRegIn, "Korrigieren Sie den Text.|Correct the text.|Text sahi karein.|Der Lehrer korrigiert.|The teacher corrects.|Teacher sahi karta hai."),
+                c("zeigen", "to show / point", "dikhana / ishara karna", "👉", "Verb", vRegIn, "Zeigen Sie das Bild.|Show the picture.|Tasveer dikhayein.|Zeig mir das.|Show me that.|Mujhe woh dikhao."),
+                c("zu dritt", "in threes", "teen ki jodi mein", "🧑‍🤝‍🧑", "Phrase", "-", "Arbeiten Sie zu dritt.|Work in threes.|Teen ki jodi mein kaam karein.|Wir spielen zu dritt.|We play in threes.|Hum teen log khelte hain."),
+                c("richtig", "correct / right", "sahi", "✅", "Adjective / Adverb", "-", "Das ist richtig.|That is correct.|Yeh sahi hai.|Ist das richtig?|Is that right?|Kya yeh sahi hai?"),
+                c("falsch", "wrong / false", "galat", "❌", "Adjective / Adverb", "-", "Das ist falsch.|That is wrong.|Yeh galat hai.|Die Antwort ist falsch.|The answer is wrong.|Jawaab galat hai."),
+                c("was passt?", "what fits?", "kya match karta hai?", "🧩", "Phrase", "Question", "Was passt?|What fits?|Kya match karta hai?|Was passt zusammen?|What fits together?|Kya ek saath match karta hai?"),
+                c("was ist richtig?", "what is correct?", "kya sahi hai?", "✅", "Phrase", "Question", "Was ist richtig? Kreuzen Sie an.|What is correct? Tick it.|Kya sahi hai? Tick karein.|Ist A oder B richtig?|Is A or B correct?|A ya B, kya sahi hai?"),
+                c("achten Sie auf ...", "pay attention to ...", "... par dhyaan dein", "👀", "Phrase", "Instruction", "Achten Sie auf die Endung.|Pay attention to the ending.|Ending par dhyaan dein.|Achten Sie auf die Form.|Pay attention to the form.|Form par dhyaan dein."),
+                c("in der richtigen Form", "in the correct form", "sahi form mein", "📝", "Phrase", "Instruction", "Schreiben Sie in der richtigen Form.|Write in the correct form.|Sahi form mein likhein.|Ergänzen Sie in der richtigen Form.|Complete in the correct form.|Sahi form mein poora karein."),
+                c("in der richtigen Reihenfolge", "in the correct order", "sahi kram mein", "🔢", "Phrase", "Instruction", "Ordnen Sie in der richtigen Reihenfolge.|Arrange in the correct order.|Sahi kram mein arrange karein.|Schreiben Sie in der richtigen Reihenfolge.|Write in the correct order.|Sahi kram mein likhein."),
+                c("im Wörterbuch", "in the dictionary", "dictionary mein", "📕", "Phrase", "-", "Suchen Sie im Wörterbuch.|Search in the dictionary.|Dictionary mein dhoondhein.|Was steht im Wörterbuch?|What does it say in the dictionary?|Dictionary mein kya likha hai?"),
+                c("mit Artikel und Plural", "with article and plural", "article aur bahuvachan ke saath", "🅰️", "Phrase", "Instruction", "Notieren Sie mit Artikel und Plural.|Note with article and plural.|Article aur bahuvachan ke saath likhein.|Lernen Sie mit Artikel und Plural.|Learn with article and plural.|Article aur bahuvachan ke saath seekhein.")
+            ]}
+        ];
+
+        const bookData = [...ch1, ...ch1_b, ...ch1_c, ...ch2, ...ch2_b, ...ch2_c];
+        const container = document.getElementById('flashcardsContainer');
+
+        function generateCardHTML(card, index) {
+            let tagColor = "bg-gray-100 text-gray-800 border-gray-200";
+            if (card.t.includes("Noun")) tagColor = "bg-blue-100 text-blue-800 border-blue-200";
+            if (card.t.includes("Verb")) tagColor = "bg-red-100 text-red-800 border-red-200";
+            if (card.t.includes("Adjective")) tagColor = "bg-green-100 text-green-800 border-green-200";
+            if (card.t.includes("Adverb")) tagColor = "bg-yellow-100 text-yellow-800 border-yellow-200";
+            if (card.t.includes("Pronoun")) tagColor = "bg-purple-100 text-purple-800 border-purple-200";
+            if (card.t.includes("Preposition")) tagColor = "bg-pink-100 text-pink-800 border-pink-200";
+            if (card.t.includes("Conjunction")) tagColor = "bg-orange-100 text-orange-800 border-orange-200";
+            if (card.t.includes("Question Word")) tagColor = "bg-teal-100 text-teal-800 border-teal-200";
+            if (card.t.includes("Greeting") || card.t.includes("Phrase") || card.t.includes("Particle")) tagColor = "bg-indigo-100 text-indigo-800 border-indigo-200";
+            if (card.t.includes("Numeral")) tagColor = "bg-cyan-100 text-cyan-800 border-cyan-200";
+
+            return `
+                <div class="flip-card perspective-1000 h-[420px] w-full cursor-pointer group" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner relative w-full h-full transform-style-3d shadow-md hover:shadow-xl rounded-2xl transition-all duration-500">
+                        <div class="flip-card-front absolute w-full h-full backface-hidden bg-white border-b-4 border-blue-500 rounded-2xl p-6 flex flex-col justify-center items-center text-center">
+                            <div class="absolute top-4 left-4">
+                                <span class="${tagColor} text-xs font-bold px-2.5 py-1 rounded shadow-sm border uppercase tracking-wider">${card.t}</span>
+                            </div>
+                            <div class="text-7xl mb-4 mt-4 visual-float select-none">${card.v}</div>
+                            <h3 class="text-2xl md:text-3xl font-bold text-gray-800 break-words w-full px-2">${card.d}</h3>
+                            ${card.i && card.i !== '-' ? `<div class="mt-3 flex flex-wrap justify-center gap-1"><span class="bg-gray-50 text-gray-500 text-[10px] px-2 py-1 rounded border border-gray-100">${card.i.replace(/ \| /g, '</span><span class="bg-gray-50 text-gray-500 text-[10px] px-2 py-1 rounded border border-gray-100">')}</span></div>` : ''}
+                            <div class="absolute top-4 right-4 text-blue-300 opacity-50 group-hover:opacity-100 transition-opacity">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                            </div>
+                            <button onclick="playAudio('${card.d.replace(/['"]+/g, '')}', event)" class="audio-btn mt-4 absolute bottom-4 right-4" title="Listen to Pronunciation">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"></path></svg>
+                            </button>
+                        </div>
+                        <div class="flip-card-back absolute w-full h-full backface-hidden rotate-y-180 notebook-bg border-b-4 border-emerald-500 rounded-2xl p-5 flex flex-col items-center justify-start overflow-y-auto custom-scrollbar">
+                            <div class="absolute top-4 left-4"><span class="${tagColor} text-xs font-bold px-2.5 py-1 rounded shadow-sm border uppercase tracking-wider">${card.t}</span></div>
+                            <div class="w-full text-center mt-8 mb-4">
+                                <h4 class="text-2xl font-bold text-emerald-700 mb-1 font-handwriting tracking-wide leading-tight">${card.e}</h4>
+                                <p class="text-gray-600 font-bold text-sm md:text-base border-b border-gray-200 pb-2">${card.h}</p>
+                            </div>
+                            <div class="w-full space-y-3 text-left px-1 pb-4">
+                                <div class="bg-white/90 p-2.5 rounded-lg shadow-sm border border-gray-100">
+                                    <p class="font-bold text-gray-800 text-sm">🇩🇪 ${card.ex1.d}</p>
+                                    <p class="text-gray-600 text-xs mt-1">🇬🇧 ${card.ex1.e}</p>
+                                    <p class="text-emerald-700 font-semibold text-[11px] mt-1">🇮🇳 ${card.ex1.h}</p>
+                                </div>
+                                <div class="bg-white/90 p-2.5 rounded-lg shadow-sm border border-gray-100">
+                                    <p class="font-bold text-gray-800 text-sm">🇩🇪 ${card.ex2.d}</p>
+                                    <p class="text-gray-600 text-xs mt-1">🇬🇧 ${card.ex2.e}</p>
+                                    <p class="text-emerald-700 font-semibold text-[11px] mt-1">🇮🇳 ${card.ex2.h}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateStats() {
+            let stats = {
+                total: 0, nouns: 0, verbs: 0, adjectives: 0, adverbs: 0, pronouns: 0,
+                prepositions: 0, conjunctions: 0, articles: 0, numerals: 0, phrases: 0, instructions: 0,
+                regularVerbs: 0, irregularVerbs: 0, mixedVerbs: 0, separableVerbs: 0, inseparableVerbs: 0
+            };
+
+            bookData.forEach(section => {
+                section.cards.forEach(card => {
+                    stats.total++;
+                    const t = card.t.toLowerCase();
+                    const i = card.i.toLowerCase();
+                    
+                    if(t.includes('noun')) stats.nouns++;
+                    if(t.includes('verb')) {
+                        stats.verbs++;
+                        if(i.includes('regular')) stats.regularVerbs++;
+                        if(i.includes('irreg')) stats.irregularVerbs++;
+                        if(i.includes('mixed')) stats.mixedVerbs++;
+                        if(i.includes('sep.')) stats.separableVerbs++;
+                        if(i.includes('insep.')) stats.inseparableVerbs++;
+                    }
+                    if(t.includes('adjective')) stats.adjectives++;
+                    if(t.includes('adverb')) stats.adverbs++;
+                    if(t.includes('pronoun')) stats.pronouns++;
+                    if(t.includes('preposition')) stats.prepositions++;
+                    if(t.includes('conjunction')) stats.conjunctions++;
+                    if(t.includes('article')) stats.articles++;
+                    if(t.includes('numeral')) stats.numerals++;
+                    if(t.includes('phrase') || t.includes('greeting') || t.includes('question')) stats.phrases++;
+                    if(t.includes('instruction')) stats.instructions++;
+                });
+            });
+
+            document.getElementById('generalStats').innerHTML = `
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value=''; renderFlashcards('');"><div class="text-3xl font-black text-blue-600">${stats.total}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Total Words</div></div>
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value='noun'; renderFlashcards('noun');"><div class="text-3xl font-black text-blue-600">${stats.nouns}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Nouns</div></div>
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value='verb'; renderFlashcards('verb');"><div class="text-3xl font-black text-blue-600">${stats.verbs}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Verbs</div></div>
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value='adjective'; renderFlashcards('adjective');"><div class="text-3xl font-black text-blue-600">${stats.adjectives}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Adjectives</div></div>
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value='adverb'; renderFlashcards('adverb');"><div class="text-3xl font-black text-blue-600">${stats.adverbs}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Adverbs</div></div>
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value='pronoun'; renderFlashcards('pronoun');"><div class="text-3xl font-black text-blue-600">${stats.pronouns}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Pronouns</div></div>
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value='preposition'; renderFlashcards('preposition');"><div class="text-3xl font-black text-blue-600">${stats.prepositions}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Prepositions</div></div>
+                <div class="stat-card cursor-pointer hover:bg-blue-50" onclick="document.getElementById('searchBar').value='phrase'; renderFlashcards('phrase');"><div class="text-3xl font-black text-blue-600">${stats.phrases}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Phrases/Greetings</div></div>
+            `;
+
+            document.getElementById('verbStats').innerHTML = `
+                <div class="stat-card border-red-500 cursor-pointer hover:bg-red-50" onclick="document.getElementById('searchBar').value='regular'; renderFlashcards('regular');"><div class="text-3xl font-black text-red-600">${stats.regularVerbs}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Regular</div></div>
+                <div class="stat-card border-red-500 cursor-pointer hover:bg-red-50" onclick="document.getElementById('searchBar').value='irreg'; renderFlashcards('irreg');"><div class="text-3xl font-black text-red-600">${stats.irregularVerbs}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Irregular</div></div>
+                <div class="stat-card border-red-500 cursor-pointer hover:bg-red-50" onclick="document.getElementById('searchBar').value='sep.'; renderFlashcards('sep.');"><div class="text-3xl font-black text-red-600">${stats.separableVerbs}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Separable</div></div>
+                <div class="stat-card border-red-500 cursor-pointer hover:bg-red-50" onclick="document.getElementById('searchBar').value='insep.'; renderFlashcards('insep.');"><div class="text-3xl font-black text-red-600">${stats.inseparableVerbs}</div><div class="text-[10px] font-bold text-gray-500 uppercase">Inseparable</div></div>
+            `;
+        }
+
+        function renderFlashcards(filterText = "") {
+            container.innerHTML = "";
+            let matchCount = 0;
+            const term = filterText.toLowerCase();
+
+            bookData.forEach(section => {
+                const filteredCards = section.cards.filter(card => {
+                    if (!term) return true;
+                    const searchStr = `${card.d} ${card.e} ${card.h} ${card.t} ${card.i} ${card.ex1.d} ${card.ex2.d}`.toLowerCase();
+                    return searchStr.includes(term);
+                });
+
+                if (filteredCards.length > 0) {
+                    matchCount += filteredCards.length;
+                    let sectionHTML = `
+                        <div class="mb-12 pl-2 md:pl-4">
+                            <h3 class="text-2xl md:text-3xl font-bold text-blue-600 mb-6 flex items-center border-b-2 border-blue-100 pb-2">
+                                <span class="bg-blue-100 text-blue-700 w-10 h-10 rounded-full flex items-center justify-center mr-3 text-lg">📚</span>
+                                ${section.title}
+                            </h3>
+                            <div class="flashcard-grid">
+                                ${filteredCards.map((card, idx) => generateCardHTML(card, idx)).join('')}
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += sectionHTML;
+                }
+            });
+
+            const noResults = document.getElementById('noResults');
+            if (matchCount === 0) noResults.classList.remove('hidden');
+            else noResults.classList.add('hidden');
+            
+            calculateStats();
+        }
+
+        function playAudio(text, event) {
+            event.stopPropagation();
+            let cleanText = text.replace(/, -n|, -en|, -e|, -s|, -|"er|"e|"en|\(.*\)/g, '').trim();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.85; 
+            window.speechSynthesis.speak(utterance);
+        }
+
+        const searchBar = document.getElementById('searchBar');
+        const clearBtn = document.getElementById('clearSearch');
+
+        searchBar.addEventListener('input', (e) => {
+            const val = e.target.value;
+            renderFlashcards(val);
+            if (val.length > 0) clearBtn.classList.remove('hidden');
+            else clearBtn.classList.add('hidden');
+        });
+
+        clearBtn.addEventListener('click', () => {
+            searchBar.value = '';
+            renderFlashcards('');
+            clearBtn.classList.add('hidden');
+            searchBar.focus();
+        });
+
+        renderFlashcards();
+    </script>
+</body>
+</html>
